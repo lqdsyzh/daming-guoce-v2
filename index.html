@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大明国策 v3.2</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8b2c1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="大明国策">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E%F0%9F%9A%9C%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="game-container">
+    <!-- 顶部 -->
+    <header class="dynasty-header">
+        <div class="dynasty-title">
+            <span class="era-name" id="era-name">成化十年</span>
+            <span class="emperor" id="emperor">春 · 孟月</span>
+        </div>
+        <div class="time-control">
+            <span class="time-label" id="time-label">决事 0 次</span>
+            <button class="time-btn" id="next-month">下季 ▶</button>
+            <button class="time-btn" id="next-year" title="快进一年">快1年 ▶▶</button>
+            <button class="save-btn" id="save-btn" title="手动存档">存</button>
+        </div>
+    </header>
+
+    <!-- 左侧：系统菜单 -->
+    <nav class="system-menu">
+        <h2 class="menu-title">朝廷六部</h2>
+        <div class="menu-tabs" id="menu-tabs">
+            <div class="menu-tab active" data-tab="politics">政</div>
+            <div class="menu-tab" data-tab="economy">财</div>
+            <div class="menu-tab" data-tab="personnel">人</div>
+            <div class="menu-tab" data-tab="impeach">刑</div>
+            <div class="menu-tab" data-tab="construction">工</div>
+            <div class="menu-tab" data-tab="diplomacy">礼</div>
+            <div class="menu-tab" data-tab="finance">赋</div>
+            <div class="menu-tab" data-tab="military">兵</div>
+            <div class="menu-tab" data-tab="transport">水</div>
+            <div class="menu-tab" data-tab="prison">囹</div>
+            <div class="menu-tab" data-tab="harem">宫</div>
+            <div class="menu-tab" data-tab="tech">气</div>
+            <div class="menu-tab" data-tab="decade">年</div>
+            <div class="menu-tab" data-tab="markets">市</div>
+            <div class="menu-tab" data-tab="censor">宪</div>
+            <div class="menu-tab" data-tab="secret">卫</div>
+            <div class="menu-tab" data-tab="prince">藩</div>
+            <div class="menu-tab" data-tab="selection">铨</div>
+            <div class="menu-tab" data-tab="tribute">贡</div>
+            <div class="menu-tab" data-tab="famine">荒</div>
+            <div class="menu-tab" data-tab="emperor">帝</div>
+            <div class="menu-tab" data-tab="share">分</div>
+            <div class="menu-tab" data-tab="compare">比</div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="main-content">
+        <!-- 左侧：22资源 + 5派系 -->
+        <aside class="left-panel">
+            <h2 class="panel-title">国运资储</h2>
+            <div class="stat-list" id="resource-list"></div>
+            <h2 class="panel-title" style="margin-top:24px">朝堂势力</h2>
+            <div class="faction-list" id="faction-list"></div>
+        </aside>
+
+        <!-- 中央：当前面板 -->
+        <section class="center-panel" id="center-panel">
+            <!-- 中央内容由各系统动态渲染 -->
+        </section>
+
+        <!-- 右侧：天象 + 朝报 + 稳定度 -->
+        <aside class="right-panel">
+            <h2 class="panel-title">天象警兆</h2>
+            <div class="celestial">
+                <div class="celestial-item">
+                    <span class="celestial-label">日食</span>
+                    <span class="celestial-value" id="omen-eclipse">未现</span>
+                </div>
+                <div class="celestial-item">
+                    <span class="celestial-label">彗星</span>
+                    <span class="celestial-value" id="omen-comet">未现</span>
+                </div>
+                <div class="celestial-item">
+                    <span class="celestial-label">天命</span>
+                    <span class="celestial-value" id="omen-mandate">安宁</span>
+                </div>
+            </div>
+            <h2 class="panel-title" style="margin-top:24px">朝报密闻</h2>
+            <div class="news-list" id="news-list"></div>
+            <h2 class="panel-title" style="margin-top:24px">社稷稳定度</h2>
+            <div class="stability-box">
+                <div class="stability-level" id="stability-level">正常</div>
+                <div class="stability-bar">
+                    <div class="stability-fill" id="stability-fill"></div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</div>
+
+<!-- 事件弹窗 -->
+<div class="event-modal" id="event-modal">
+    <div class="event-paper">
+        <div class="event-header" id="event-header">春 · 孟月</div>
+        <h2 class="event-title" id="event-title">飞蝗蔽天</h2>
+        <div class="event-content" id="event-content">北直隶蝗灾。</div>
+        <div class="event-choices" id="event-choices"></div>
+    </div>
+</div>
+
+<!-- 奏折弹窗（仪式化） -->
+<div class="memorial-modal" id="memorial-modal">
+    <div class="memorial-paper">
+        <!-- 奏折头部：递折部门 + 密级 -->
+        <div class="memorial-ribbon">
+            <div class="memorial-ministry" id="memorial-ministry">户部 · 本章</div>
+            <div class="memorial-time" id="memorial-time">天启三年 春</div>
+        </div>
+        
+        <!-- 奏折主文 -->
+        <div class="memorial-body">
+            <div class="memorial-handle"></div>
+            <h2 class="memorial-title" id="memorial-title">请发内帑赈济</h2>
+            <div class="memorial-content" id="memorial-content"></div>
+        </div>
+        
+        <!-- 票拟：内阁意见 -->
+        <div class="pini-section">
+            <div class="pini-label">【内阁票拟】</div>
+            <div class="pini-text" id="pini-text">准奏照办</div>
+            <div class="pini-reason" id="pini-reason">该部所奏合于大体，臣等议如所请。</div>
+        </div>
+        
+        <!-- 批红：御玺 -->
+        <div class="pihong-section">
+            <div class="seal-container">
+                <div class="seal-circle">
+                    <span class="seal-glyph">御</span>
+                </div>
+                <div class="seal-info">
+                    <div class="seal-name" id="seal-name">用制诰之宝</div>
+                    <div class="seal-desc" id="seal-desc">朱文方印</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 圣裁 -->
+        <h3 class="memorial-decision-title">圣上亲裁</h3>
+        <div class="memorial-choices" id="memorial-choices"></div>
+    </div>
+</div>
+
+<!-- 剧本选择弹窗 -->
+<div class="script-modal active" id="script-modal">
+    <div class="script-paper">
+        <div class="script-title">大明国策</div>
+        <div class="script-subtitle">天子守国门，君王死社稷</div>
+        <div class="script-warning">
+            ⚠ 此非爽游。<br>
+            60+ 系统 × 20+ 形态 = 1200+ 数据点<br>
+            22 资源 / 5 派系 / 30 大臣 / 20 后妃 / 30 科技 / 20 奇观<br>
+            支持自动存档与读档，可随时刷新继续
+        </div>
+        <h3 style="color: #b8893a; margin-top: 30px;">请择朝代</h3>
+        <div class="script-list" id="script-list"></div>
+    </div>
+</div>
+
+<!-- 结局弹窗 -->
+<div class="end-modal" id="end-modal">
+    <div class="end-paper">
+        <div class="end-era" id="end-era">天启三年</div>
+        <h2 class="end-title" id="end-title">国运终焉</h2>
+        <div class="end-content" id="end-content"></div>
+        <div class="end-stats" id="end-stats"></div>
+        <div class="end-buttons">
+            <button class="restart-btn" id="restart-btn">再起一朝</button>
+            <button class="continue-btn" id="end-continue-btn">载入存档</button>
+        </div>
+    </div>
+</div>
+
+<!-- 系统弹窗（弹劾/科技/军事/后宫等） -->
+<div class="system-modal" id="system-modal">
+    <div class="system-paper" id="system-paper">
+        <!-- 动态渲染 -->
+    </div>
+</div>
+
+<script src="data/script.js"></script>
+<script src="data/systems.js"></script>
+<script src="data/achievements.js"></script>
+<script src="data/historian.js"></script>
+<script src="data/advice.js"></script>
+<script src="data/memorials.js"></script>
+<script src="data/memorials_v31.js"></script>
+<script src="data/systems2.js"></script>
+<script src="data/v31_extra.js"></script>
+<script src="data/share.js"></script>
+<script src="data/compare.js"></script>
+<script src="data/extras_ui.js"></script>
+<script src="data/extras2.js"></script>
+<script src="modules.js"></script>
+<script src="script.js"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW err:', err));
+    });
+}
+</script>
+</body>
+</html>
