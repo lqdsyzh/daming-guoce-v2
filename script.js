@@ -32,6 +32,32 @@ function saveGame() {
             nations: GameState.nations,
             currentTab: GameState.currentTab,
             impeachmentQueue: GameState.impeachmentQueue,
+            // 批1：岁末大计锚点（旧档缺失时 loadGame 兜底）
+            factionsYearStart: GameState.factionsYearStart,
+            stabilityLevelYearStart: GameState.stabilityLevelYearStart,
+            stabilityYearStart: GameState.stabilityYearStart,
+            yearLedger: GameState.yearLedger,
+            // 批2：舆图状态 + 召见限频（旧档缺失时 loadGame 兜底初始化）
+            mapData: GameState.mapData,
+            talkData: GameState.talkState,
+            // 批3：厂卫/内帑状态随存档链持久化
+            cangwei: GameState.cangwei,
+            // 批4：早朝/后宫外交/科举/营造
+            courtState: GameState.courtState,
+            haremInteract: GameState.haremInteract,
+            diploInteract: GameState.diploInteract,
+            kejuState: GameState.kejuState,
+            yingzaoState: GameState.yingzaoState,
+            // 批5：纵深扩展（御笔批朱/军事操练/灾异应对/礼制大典/自动理政）
+            junpi: GameState.junpi,
+            milOps: GameState.milOps,
+            zaiyi: GameState.zaiyi,
+            lizhi: GameState.lizhi,
+            autoMode: GameState.autoMode,
+            // 批A：经济深改（物价/常平/开中/市舶/贪腐侵蚀/景气）
+            econ: GameState.econ,
+            // 批B：主线叙事（山河志）
+            mainline: GameState.mainline,
             timestamp: Date.now()
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
@@ -78,6 +104,37 @@ function loadGame() {
         GameState.nations = save.nations || deepCopy(FOREIGN_NATIONS);
         GameState.currentTab = save.currentTab || 'politics';
         GameState.impeachmentQueue = save.impeachmentQueue || [];
+        // 批1：岁末大计锚点（旧档缺失时以当前值兜底）
+        GameState.factionsYearStart = save.factionsYearStart || deepCopy(GameState.factions);
+        GameState.stabilityLevelYearStart = (save.stabilityLevelYearStart !== undefined)
+            ? save.stabilityLevelYearStart : GameState.stabilityLevel;
+        GameState.stabilityYearStart = (save.stabilityYearStart !== undefined)
+            ? save.stabilityYearStart : GameState.stats.stability;
+        GameState.yearLedger = save.yearLedger || { income: {}, expense: {} };
+        // 批2：舆图状态 + 召见限频（旧档缺失时按当前剧本初始化；限频key走存档链）
+        GameState.mapData = save.mapData || initMapState(GameState.script ? GameState.script.id : 'chenghua');
+        GameState.talkState = save.talkData || initTalkState();
+        // 批3：厂卫/内帑状态随存档链恢复（旧档缺失时兜底补默认；限频key一并恢复）
+        if (save.cangwei) GameState.cangwei = save.cangwei;
+        if (typeof ensureCangweiState === 'function') { try { ensureCangweiState(); } catch (e) {} }
+        // 批4：早朝/后宫外交/科举/营造（旧档缺失兜底补默认）
+        GameState.courtState = save.courtState || ((typeof initCourtState === 'function') ? initCourtState() : {});
+        GameState.haremInteract = save.haremInteract || ((typeof initHaremInteractState === 'function') ? initHaremInteractState() : {});
+        GameState.diploInteract = save.diploInteract || ((typeof initDiploInteractState === 'function') ? initDiploInteractState() : {});
+        GameState.kejuState = save.kejuState || ((typeof initKejuState === 'function') ? initKejuState() : {});
+        GameState.yingzaoState = save.yingzaoState || ((typeof initYingzaoState === 'function') ? initYingzaoState() : {});
+        // 批5：纵深扩展（旧档缺失兜底补默认；限频key一并走存档链）
+        GameState.junpi = save.junpi || ((typeof initJunpiState === 'function') ? initJunpiState() : {});
+        GameState.milOps = save.milOps || ((typeof initMilOpsState === 'function') ? initMilOpsState() : {});
+        GameState.zaiyi = save.zaiyi || ((typeof initZaiyiState === 'function') ? initZaiyiState() : {});
+        GameState.lizhi = save.lizhi || ((typeof initLizhiState === 'function') ? initLizhiState() : {});
+        GameState.autoMode = save.autoMode || ((typeof initAutoModeState === 'function') ? initAutoModeState() : {});
+        // 批A：经济深改（旧档缺失兜底按当前剧本物价初始化）
+        GameState.econ = save.econ || ((typeof initEconomyState === 'function') ? initEconomyState() : {});
+        // 批B：主线叙事（旧档缺失兜底初始化）
+        GameState.mainline = save.mainline || ((typeof initMainline === 'function') ? initMainline() : {});
+        GameState.yearNews = [];
+        GameState.yearEndPending = false;
         GameState.gameOver = false;
         
         return true;
@@ -173,7 +230,37 @@ function initGame(scriptId) {
     GameState.nations = deepCopy(FOREIGN_NATIONS);
     GameState.currentTab = 'politics';
     GameState.impeachmentQueue = [];
-    
+    // 批1：岁末大计锚点初始化
+    GameState.factionsYearStart = deepCopy(GameState.factions);
+    GameState.stabilityLevelYearStart = GameState.stabilityLevel;
+    GameState.stabilityYearStart = GameState.stats.stability;
+    GameState.yearLedger = { income: {}, expense: {} };
+    GameState.yearNews = [];
+    GameState.yearEndPending = false;
+    // 批2：舆图状态（含剧本开局差异）+ 召见限频初始化
+    try {
+        GameState.mapData = initMapState(script.id);
+        GameState.talkState = initTalkState();
+        // 批3：厂卫/内帑初始化 + 待发事件队列清空
+        if (typeof initCangweiState === 'function') { GameState.cangwei = initCangweiState(); GameState.pendingEvent = null; }
+        // 批4：早朝/后宫外交/科举/营造初始化
+        if (typeof initCourtState === 'function') GameState.courtState = initCourtState();
+        if (typeof initHaremInteractState === 'function') GameState.haremInteract = initHaremInteractState();
+        if (typeof initDiploInteractState === 'function') GameState.diploInteract = initDiploInteractState();
+        if (typeof initKejuState === 'function') GameState.kejuState = initKejuState();
+        if (typeof initYingzaoState === 'function') GameState.yingzaoState = initYingzaoState();
+        // 批5：纵深扩展初始化
+        if (typeof initJunpiState === 'function') GameState.junpi = initJunpiState();
+        if (typeof initMilOpsState === 'function') GameState.milOps = initMilOpsState();
+        if (typeof initZaiyiState === 'function') GameState.zaiyi = initZaiyiState();
+        if (typeof initLizhiState === 'function') GameState.lizhi = initLizhiState();
+        if (typeof initAutoModeState === 'function') GameState.autoMode = initAutoModeState();
+        // 批A：经济深改（物价/景气/常平/开中/市舶）
+        if (typeof initEconomyState === 'function') GameState.econ = initEconomyState();
+        // 批B：主线叙事（山河志）
+        if (typeof initMainline === 'function') GameState.mainline = initMainline();
+    } catch (e) {}
+
     document.getElementById('script-modal').classList.remove('active');
     document.getElementById('end-modal').classList.remove('active');
     
@@ -201,6 +288,9 @@ function continueGame() {
 // ====== 推进时间（一季 = 3个月）======
 function advanceSeason() {
     if (GameState.gameOver) return;
+    
+    // 批1：下季更鼓音效
+    try { DamingSFX.play('season'); } catch (e) {}
     
     GameState.currentMonth++;
     if (GameState.currentMonth >= 3) {
@@ -256,6 +346,29 @@ function advanceSeason() {
         }
     }
     
+    // 批3：内帑/厂卫巡检（矿监税使4章结算、卫力反噬、内帑枯竭、派系报复）
+    try { cwMinerTick(); } catch (e) {}
+    // 批4：舆图延迟效果结算
+    try { tickMapPendingEffects(); } catch (e) {}
+    try { cwCheckBackfire(); } catch (e) {}
+    try { cwCheckDepletion(); } catch (e) {}
+    try { cwCheckRevenge(); } catch (e) {}
+
+    // 批5：纵深扩展每季巡检（批朱限次刷新/灾异复灾/大典冷却流逝/自动理政预热）
+    try { b5Tick(); } catch (e) {}
+
+    // 批A：经济巡检（物价季动/市面萧条/景气/市舶积祸）
+    try { economyTick(); } catch (e) {}
+
+    // 批B：主线巡检（山河志节点到期则优先呈现并停止当季随机事件）
+    try { if (mainlineTick()) return; } catch (e) {}
+
+    // 批3：待发事件（和解彩蛋/厂卫反噬/内帑枯竭）与出师战报（急奏样式）优先呈现
+    let queuedEv = null;
+    try { queuedEv = consumePendingEvent(); } catch (e) { queuedEv = null; }
+    try { if (!queuedEv && typeof checkExpeditionArrival === 'function') queuedEv = checkExpeditionArrival(); } catch (e) { queuedEv = null; }
+    if (queuedEv && typeof showEvent === 'function') { showEvent(queuedEv); return; }
+
     // 70% 概率触发事件（大臣上奏或随机事件）
     const r = Math.random();
     if (r < 0.4 && typeof triggerMinisterAdvice === 'function') {
@@ -268,6 +381,7 @@ function advanceSeason() {
             const queue = generateMemorialQueue();
             if (queue.length > 0) {
                 GameState.memorialQueue = queue;
+                try { DamingSFX.play('urgent'); } catch (e) {}
                 showMemorial(queue[0]);
                 return;
             }
@@ -313,6 +427,8 @@ function seasonSettlement() {
         if (amount > 0) {
             GameState.stats[income.resource] += amount;
             pushNews(season.name + '季', `${RESOURCES[income.resource].name} +${amount}`, 'normal');
+            // 批1：岁末大计账本（只记录，不影响数值）
+            try { recordYearLedger('income', income.resource, amount); } catch (e) {}
         }
     });
     
@@ -323,6 +439,11 @@ function seasonSettlement() {
     
     if (salaryCost + militaryCost > 0) {
         pushNews(season.name + '季', `俸禄军费 -${salaryCost + militaryCost}两`, 'normal');
+        // 批1：岁末大计账本（只记录，不影响数值）
+        try {
+            recordYearLedger('expense', 'salary', salaryCost);
+            recordYearLedger('expense', 'military', militaryCost);
+        } catch (e) {}
     }
     
     // 国库负债追踪
@@ -340,10 +461,15 @@ function seasonSettlement() {
                           GameState.factions.royal + GameState.factions.eunuch + 
                           GameState.factions.consort) * 2;
     GameState.stats.treasury -= factionUpkeep;
+    // 批1：岁末大计账本（只记录，不影响数值）
+    try { recordYearLedger('expense', 'faction', factionUpkeep); } catch (e) {}
 }
 
 // ====== 年末结算 ======
 function yearEndSettlement() {
+    // 批1：结算前快照（岁末大计对比基线，只读不改）
+    try { snapshotYearEnd(); } catch (e) {}
+    
     // 人口基础增长
     const stabLevel = getStabilityLevel();
     GameState.stats.population = Math.floor(GameState.stats.population * stabLevel.popMod);
@@ -357,6 +483,9 @@ function yearEndSettlement() {
     updateStabilityLevel();
     
     pushNews('岁末', `天下大势：稳定 ${GameState.stats.stability} | 威望 ${GameState.stats.prestige} | 腐败 ${GameState.stats.corruption}`, 'normal');
+    
+    // 批1：岁末大计面板（五步分展，呈现层重做；结算数值逻辑未动）
+    try { openYearEndReport(); } catch (e) {}
 }
 
 // ====== 慢变量 ======
@@ -604,6 +733,10 @@ function checkLoseConditions() {
 
 // ====== 显示事件弹窗 ======
 function showEvent(event) {
+    // 批1：事件音效（灾异边患低鸣，其余急奏鼓点）
+    try { DamingSFX.play((event.type === 'disaster' || event.type === 'border') ? 'disaster' : 'urgent'); } catch (e) {}
+    // 批2：舆图状态联动打点（灾害/边患/叛乱按文本映射地区，同章同格不叠加）
+    try { tagMapRegionByEvent(event); } catch (e) {}
     const modal = document.getElementById('event-modal');
     document.getElementById('event-header').textContent = 
         `${SEASONS[GameState.currentSeason].name} · ${['孟','仲','季'][GameState.currentMonth]}月`;
@@ -628,8 +761,15 @@ function showEvent(event) {
             <span class="decision-option-hint">${hint}</span>
         `;
         optEl.onclick = () => {
+            try { DamingSFX.play('decide'); } catch (e) {}
             applyDecision(opt.effect);
+            // 批2：事件处置后舆图状态收敛（正面处置→地区转安定）
+            try { settleMapRegionByChoice(event, opt); } catch (e) {}
+            // 批3：出师战报追责/抚恤等动态处置
+            try { resolveExpeditionChoice(event, opt); } catch (e) {}
             addToHistory(event, opt);
+            // 批5：灾异应对登记（灾异事件处置后挂入荒tab待办）
+            try { zaiyiReportFromEvent(event, opt); } catch (e) {}
             pushNews('圣旨', `陛下${opt.text}：${event.title}`, 'normal');
             modal.classList.remove('active');
             
@@ -672,6 +812,7 @@ function formatEffectHint(effect) {
 function addToHistory(event, decision) {
     GameState.history.unshift({
         era: GameState.script.era,
+        year: GameState.currentYear,
         season: SEASONS[GameState.currentSeason].name,
         month: ['孟','仲','季'][GameState.currentMonth],
         type: event.type,
@@ -683,7 +824,7 @@ function addToHistory(event, decision) {
 }
 
 function renderHistory() {
-    const list = document.getElementById('history-list');
+    const list = (document.getElementById('history-list')||{innerHTML:'',appendChild:()=>{}});
     if (!list) return;
     list.innerHTML = '';
     
@@ -708,6 +849,9 @@ function renderHistory() {
 // ====== 触发结局 ======
 function triggerEnding(type) {
     GameState.gameOver = true;
+    
+    // 批1：结局编钟尾声
+    try { DamingSFX.play('ending'); } catch (e) {}
     
     const endings = {
         mandate_lost: {
@@ -755,6 +899,11 @@ function triggerEnding(type) {
         statsContainer.appendChild(item);
     });
     
+    // 批3：结局回响「身后名」（编年大事/厂卫卷宗/谥号/史官总评）
+    try { if (typeof renderEndLegacy === 'function') renderEndLegacy(type); } catch (e) {}
+    // 批B：主线结局「山河志」章节（与既有结局并存）
+    try { if (typeof renderMainlineEnding === 'function') renderMainlineEnding(); } catch (e) {}
+
     pushNews('史官', `陛下在位，决事 ${GameState.decisionsCount} 次。`, 'normal');
     
     document.getElementById('end-modal').classList.add('active');
@@ -941,6 +1090,12 @@ function renderCelestial() {
 function pushNews(time, text, type) {
     GameState.news.unshift({ time, text, type });
     if (GameState.news.length > 30) GameState.news.pop();
+    // 批1：年度要闻累积（岁末大计"变故实录"用，只记录不改原逻辑）
+    try {
+        if (!GameState.yearNews) GameState.yearNews = [];
+        GameState.yearNews.unshift({ time, text, type });
+        if (GameState.yearNews.length > 80) GameState.yearNews.pop();
+    } catch (e) {}
 }
 
 function renderNews() {
@@ -1021,6 +1176,31 @@ function restartGame() {
 document.addEventListener('DOMContentLoaded', () => {
     renderScriptList();
     
+    // 批1：音效解锁 + 设置 + 移动端导航 + 岁末大计委托
+    try { initSFXUnlock(); } catch (e) {}
+    try { initMobileUI(); } catch (e) {}
+    try { initYearendDelegates(); } catch (e) {}
+
+    // 批5：纵深扩展UI初始化（自动理政角标/礼制大典/御览批朱按钮）
+    try { initBatch5UI(); } catch (e) {}
+    
+    // 批1：全局点击音效（事件委托；跳过已带专属音效的按钮，避免叠音）
+    try {
+        document.addEventListener('click', (e) => {
+            try {
+                if (!e.target || !e.target.closest) return;
+                if (e.target.closest('#mobile-next') || e.target.closest('#sfx-btn') ||
+                    e.target.closest('#sfx-close') || e.target.closest('#sfx-toggle') ||
+                    e.target.closest('.mobile-tab')) return;
+                if (e.target.closest('button') || e.target.closest('.menu-tab') ||
+                    e.target.closest('.decision-option') || e.target.closest('.memorial-option') ||
+                    e.target.closest('.script-option')) {
+                    DamingSFX.play('click');
+                }
+            } catch (err) {}
+        });
+    } catch (e) {}
+    
     // 初始化本机联机（BroadcastChannel）
     if (typeof initBroadcast === 'function') {
         initBroadcast();
@@ -1081,3 +1261,81 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// ============================================
+// 批4：扩展数据合并（事件/急奏/建言）
+// ============================================
+(function mergeBatch4Data() {
+    try {
+        // 合并扩展事件到EVENTS
+        if (typeof EVENTS_EXTENSION !== 'undefined' && Array.isArray(EVENTS_EXTENSION)) {
+            const extStart = Object.keys(EVENTS).length;
+            EVENTS_EXTENSION.forEach((ev, i) => {
+                const key = 'ext_' + (i + 1);
+                EVENTS[key] = ev;
+            });
+            // 重建EVENTS_BY_TYPE
+            Object.keys(EVENTS_BY_TYPE).forEach(type => {
+                EVENTS_BY_TYPE[type] = Object.keys(EVENTS).filter(k => EVENTS[k].type === type);
+            });
+            // 确保扩展type也加入
+            EVENTS_EXTENSION.forEach(ev => {
+                if (!EVENTS_BY_TYPE[ev.type]) {
+                    EVENTS_BY_TYPE[ev.type] = Object.keys(EVENTS).filter(k => EVENTS[k].type === ev.type);
+                }
+            });
+        }
+        // 合并扩展急奏到memorialQueue生成
+        if (typeof MEMORIALS_EXTENSION !== 'undefined' && Array.isArray(MEMORIALS_EXTENSION)) {
+            window._memorialsExtension = MEMORIALS_EXTENSION;
+        }
+        // 合并扩展建言
+        if (typeof ADVICE_EXTENSION !== 'undefined' && Array.isArray(ADVICE_EXTENSION)) {
+            window._adviceExtension = ADVICE_EXTENSION;
+        }
+    } catch (e) {}
+})();
+
+// 扩展急奏生成：混合扩展急奏
+var _origGenerateMemorialQueue = generateMemorialQueue;
+generateMemorialQueue = function() {
+    try {
+        const queue = _origGenerateMemorialQueue();
+        if (window._memorialsExtension && Math.random() < 0.35) {
+            const ext = window._memorialsExtension;
+            const pick = ext[Math.floor(Math.random() * ext.length)];
+            // 筛选当前剧本匹配的
+            const sid = GameState.script ? GameState.script.id : 'all';
+            const matching = ext.filter(m => !m.script || m.script === sid || m.script === 'all');
+            if (matching.length > 0) {
+                const chosen = matching[Math.floor(Math.random() * matching.length)];
+                queue.push(chosen);
+            }
+        }
+        return queue;
+    } catch (e) { return _origGenerateMemorialQueue(); }
+};
+
+// 扩展建言触发：混合扩展建言
+var _origTriggerMinisterAdvice = triggerMinisterAdvice;
+triggerMinisterAdvice = function() {
+    try {
+        // 30%概率触发扩展建言
+        if (window._adviceExtension && Math.random() < 0.3) {
+            const ext = window._adviceExtension;
+            const matching = ext.filter(a => {
+                try { return a.condition && a.condition(GameState); } catch (e) { return false; }
+            });
+            if (matching.length > 0) {
+                const chosen = matching[Math.floor(Math.random() * matching.length)];
+                showEvent({
+                    title: chosen.title || '臣有建言',
+                    desc: chosen.text,
+                    options: chosen.options || [{ text: '知道了', effect: {} }]
+                });
+                return true;
+            }
+        }
+        return _origTriggerMinisterAdvice();
+    } catch (e) { return _origTriggerMinisterAdvice(); }
+};

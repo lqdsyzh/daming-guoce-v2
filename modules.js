@@ -15,22 +15,27 @@ function renderPanel(tab) {
         case 'personnel':   html = renderPersonnel(); break;
         case 'impeach':     html = renderImpeach(); break;
         case 'construction':html = renderConstruction(); break;
-        case 'diplomacy':   html = renderDiplomacy(); break;
+        case 'diplomacy':   html = renderDiplomacy() + (typeof renderDiploInteractTab === 'function' ? renderDiploInteractTab() : ''); break;
         case 'finance':     html = renderHuBuDetail(); break;
-        case 'military':    html = renderMilitaryOps(); break;
+        case 'military':    html = renderMilitaryOps() + (typeof renderMilitaryOpsExt === 'function' ? renderMilitaryOpsExt() : ''); break;
         case 'transport':   html = renderWaterSystem(); break;
         case 'prison':      html = renderSecretService(); break;
-        case 'harem':       html = renderPalaceStaff(); break;
-        case 'tech':        html = renderSolarRituals(); break;
+        case 'harem':       html = renderPalaceStaff() + (typeof renderHaremInteractTab === 'function' ? renderHaremInteractTab() : ''); break;
+        case 'court':       html = renderCourtTab(); break;
+        case 'keju':        html = renderKejuTab(); break;
+        case 'yingzao':     html = renderYingzaoTab(); break;
+        case 'tech':        html = renderSolarRituals() + (typeof renderLizhiTab === 'function' ? renderLizhiTab() : '') + (typeof renderAutoTab === 'function' ? renderAutoTab() : ''); break;
         case 'decade':      html = renderDecade(); break;
-        case 'markets':     html = renderMarketPrices(); break;
+        case 'yearend':     html = (typeof renderYearendTab === 'function') ? renderYearendTab() : ''; break;
+        case 'map':         html = (typeof renderMapTab === 'function') ? renderMapTab() : ''; break;
+        case 'markets':     html = (typeof renderMarketV5 === 'function') ? renderMarketV5() : renderMarketPrices(); break;
         case 'censor':      html = renderCensor(); break;
-        case 'secret':      html = renderSecretService(); break;
+        case 'secret':      html = (typeof renderCangweiTab === 'function') ? renderCangweiTab() : renderSecretService(); break; // 批3：厂卫面板
         case 'prince':      html = renderPrinces(); break;
         case 'selection':   html = renderSelection(); break;
         case 'tribute':     html = renderTribute(); break;
-        case 'famine':      html = renderFamineWarning(); break;
-        case 'emperor':     html = renderEmperorTraits(); break;
+        case 'famine':      html = renderFamineWarning() + (typeof renderZaiyiTab === 'function' ? renderZaiyiTab() : ''); break;
+        case 'emperor':     html = renderEmperorTraits() + (typeof renderLizhiTab === 'function' ? renderLizhiTab() : '') + (typeof renderAutoTab === 'function' ? renderAutoTab() : ''); break;
         case 'share':       html = renderShare(); break;
         case 'compare':     html = renderCompare(); break;
     }
@@ -49,24 +54,17 @@ function isDirectlyWrittenTab(tab) {
 // ====== 1. 政事卷：当前奏折 + 事件 ======
 function renderPolitics() {
     const s = GameState.stats;
-    const panel = document.getElementById('center-panel');
-    panel.innerHTML = `
-        <div class="season-banner">
-            <div class="season-name">${SEASONS[GameState.currentSeason].name}</div>
+    // 国事区已在index.html永久DOM，只更新季节banner和刷新历史
+    const banner = document.getElementById('season-banner');
+    if (banner) {
+        const jpLeft = (typeof GameState.junpi !== 'undefined' && GameState.junpi) ? Math.max(0, 3 - GameState.junpi.perTick) : 3;
+        const jpN = (GameState.memorialQueue || []).length;
+        banner.innerHTML = `<div class="season-name">${SEASONS[GameState.currentSeason].name}</div>
             <div class="season-status">${['孟','仲','季'][GameState.currentMonth]}月 · ${SEASONS[GameState.currentSeason].effect}</div>
-        </div>
-        <div class="edict-paper" id="edict-paper">
-            <div class="edict-from" id="edict-from">【候旨】</div>
-            <h2 class="edict-title" id="edict-title">国事待理</h2>
-            <div class="edict-content" id="edict-content">
-                点右上"下季"推进国事，遇有大事将有急奏呈上。
-            </div>
-        </div>
-        <div class="edict-history">
-            <h3 class="history-title">已决政事</h3>
-            <div class="history-list" id="history-list"></div>
-        </div>
-    `;
+            <button id="junpi-open-btn" class="junpi-open-btn" onclick="openJunpiModal()">御览批朱（${jpLeft}${jpN > 0 ? '·' + jpN + '奏' : ''}）</button>`;
+    }
+    const panel = document.getElementById('center-panel');
+    panel.innerHTML = '';
     renderHistory();
 }
 
@@ -132,6 +130,9 @@ function renderEconomy() {
             <button class="policy-btn" onclick="togglePolicy('商税')">商税：${GameState.policies['商税'] || '三十税一'}</button>
             <button class="policy-btn" onclick="togglePolicy('马政')">马政：${GameState.policies['马政'] || '民牧'}</button>
         </div>
+        
+        ${(typeof renderProsperityCard === 'function') ? renderProsperityCard() : ''}
+        ${(typeof renderGovernance === 'function') ? renderGovernance() : ''}
     `;
 }
 
@@ -142,13 +143,26 @@ function renderFinanceRow(name, amount, type) {
     </div>`;
 }
 
+function _econDep() { const e = GameState.econ; return (e && e.depressed) ? e.depressed : 0; }
+function _econErosion() {
+    return (typeof corruptionErosion === 'function')
+        ? corruptionErosion()
+        : (1 - (GameState.stats.corruption || 0) / 100);
+}
+
 function calculateIncome() {
     const s = GameState.stats;
-    const tax = Math.floor(800 * (1 - s.corruption/100) * (s.adminEfficiency/50));
-    const caoyun = Math.floor(200 * s.canalEfficiency/50);
-    const salt = Math.floor(300 * s.commerce/50);
-    const commerce = Math.floor(150 * s.commerce/50);
-    const haigang = s.commerce > 50 ? Math.floor(200 * s.commerce/50) : 0;
+    const erosion = _econErosion();          // 批A：贪腐侵蚀（应收1000，实得随贪腐600-800）
+    const dep = _econDep();
+    const depMult = Math.max(0.55, 1 - dep * 0.1);   // 批A：市面萧条折损工商漕
+    const tax = Math.floor(800 * erosion * (s.adminEfficiency / 50));
+    const caoyun = Math.floor(200 * s.canalEfficiency / 50) * depMult;
+    const salt = Math.floor(300 * s.commerce / 50);
+    const commerce = Math.floor(150 * s.commerce / 50) * depMult;
+    const shiboOn = (GameState.econ && GameState.econ.shibo === 1);
+    const haigang = (s.commerce > 30)
+        ? Math.floor((120 + (s.commerce - 30) * 3) * (shiboOn ? 1.8 : 1.0))
+        : 0;
     return {
         tax, caoyun, salt, commerce, haigang,
         total: tax + caoyun + salt + commerce + haigang
@@ -238,7 +252,7 @@ function filterMinisters(cat) {
     window._currentMinisterFilter = cat;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     event.target.classList.add('active');
-    const list = document.getElementById('ministers-list');
+    const list = (document.getElementById('ministers-list')||{innerHTML:''});
     if (list) list.innerHTML = renderMinisterCards(GameState.ministers);
 }
 
@@ -253,6 +267,8 @@ function ministerAction(cat, idx, action) {
     let msg = '';
     switch(action) {
         case '召见':
+            // 批2：接入大臣召见浮层（四互动：问策/闲谈/赏赐/训诫）
+            if (typeof openTalkModal === 'function') { openTalkModal(cat, idx); return; }
             m.loyalty = Math.min(100, m.loyalty + 5);
             msg = `召见${m.name}，赐茶。`;
             break;
@@ -366,7 +382,7 @@ function switchImpeachTab(tab) {
     window._impeachTab = tab;
     document.querySelectorAll('.impeach-tabs .filter-btn').forEach(b => b.classList.remove('active'));
     event.target.classList.add('active');
-    const content = document.getElementById('impeach-content');
+    const content = (document.getElementById('impeach-content')||{innerHTML:'',textContent:''});
     if (!content) return;
     switch(tab) {
         case 'queue':   content.innerHTML = renderImpeachQueue(); break;
@@ -843,3 +859,73 @@ function researchTech(cat, name, cost) {
 }
 
 console.log('✓ 60+系统模块加载完成');
+
+// ============================================
+// 批4：新增tab渲染函数
+// ============================================
+
+function renderCourtTab() {
+    try {
+        if (!GameState.courtState) GameState.courtState = initCourtState();
+        const tick = getMapTick();
+        const lastHeld = GameState.courtState.lastHeld || -99;
+        const nextIn = Math.max(0, 2 - (tick - lastHeld));
+        const typeNames = { civil: '民政', military: '军务', personnel: '人事' };
+        const issues = GameState.courtState.currentIssues || [];
+        const issuesHtml = issues.map((iss, i) => {
+            const optList = iss.opts.map(o => `<li>${o.text}</li>`).join('');
+            return `<div class="court-item">
+                <b>[${typeNames[iss.type]}] ${iss.title}</b>
+                <div class="court-item-desc">${iss.desc}</div>
+                <ul class="court-item-opts">${optList}</ul>
+            </div>`;
+        }).join('');
+        return `<div class="tab-panel">
+            <h3>早朝议政（每2章可开朝，抽取3议题各选处理方式）</h3>
+            <div class="action-bar">
+                <button class="cw-btn" ${nextIn > 0 ? 'disabled' : ''} onclick="openCourtSession()">
+                    临朝听政${nextIn > 0 ? '（' + nextIn + '章后）' : ''}
+                </button>
+            </div>
+            <div class="court-summary">已决 ${GameState.courtState.resolvedCount || 0} 议</div>
+            ${issuesHtml ? '<h4>当前议题</h4>' + issuesHtml : ''}
+            <div class="hint">反爽铁律：每选项都有权衡代价，不做白嫖爽点。议题池50+条，按剧本特色抽取。史据：《明史》本纪/列传逐条注出。</div>
+        </div>`;
+    } catch (e) { return '<div class="tab-panel">朝堂暂安。</div>'; }
+}
+
+function renderKejuTab() {
+    try {
+        if (!GameState.kejuState) GameState.kejuState = initKejuState();
+        const tick = getMapTick();
+        const lastHeld = GameState.kejuState.lastHeld || -99;
+        const nextIn = Math.max(0, KEJU_INTERVAL - (tick - lastHeld));
+        const history = (GameState.kejuState.newOfficials || []).map(h =>
+            `<li>第${h.tick + 1}章 · ${h.subject}科 · 录${h.passed}人 · 入朝${h.filled}人</li>`
+        ).join('');
+        return `<div class="tab-panel">
+            <h3>科举取士（每${KEJU_INTERVAL}章开科，选考官→选科目→录取→新官入朝）</h3>
+            <div class="action-bar">
+                <button class="cw-btn" ${nextIn > 0 ? 'disabled' : ''} onclick="openKejuSession()">
+                    开科取士${nextIn > 0 ? '（' + nextIn + '章后）' : ''}
+                </button>
+            </div>
+            <div class="keju-summary">历科录 ${GameState.kejuState.passCount || 0} 人 · 舞弊 ${GameState.kejuState.cheatCount || 0} 次</div>
+            <h4>历科记录</h4>
+            <ul class="keju-history">${history || '<li>尚无科举。</li>'}</ul>
+            <div class="hint">科举有国库代价（${KEJU_COST}两），舞弊有弹劾风险。新官入朝可补充被清洗空位。史据：《明史》卷70·选举志二</div>
+        </div>`;
+    } catch (e) { return '<div class="tab-panel">科场暂安。</div>'; }
+}
+
+function _renderYingzaoTabFallback() {
+    try {
+        if (typeof renderYingzaoTab === 'function' && renderYingzaoTab !== _renderYingzaoTabFallback) {
+            return renderYingzaoTab();
+        }
+        return '<div class="tab-panel">营造：加载中</div>';
+    } catch (e) { return '<div class="tab-panel">工部暂安。</div>'; }
+}
+// yingzao.js加载后将覆盖renderYingzaoTab（全局），modules.js case 'yingzao' 直接调用即可
+// 我们在yingzao.js加载后自动覆盖
+

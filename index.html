@@ -23,6 +23,7 @@
             <span class="time-label" id="time-label">决事 0 次</span>
             <button class="time-btn" id="next-month">下季 ▶</button>
             <button class="time-btn" id="next-year" title="快进一年">快1年 ▶▶</button>
+            <button class="save-btn" id="sfx-btn" title="音效设置">音</button>
             <button class="save-btn" id="save-btn" title="手动存档">存</button>
         </div>
     </header>
@@ -42,8 +43,13 @@
             <div class="menu-tab" data-tab="transport">水</div>
             <div class="menu-tab" data-tab="prison">囹</div>
             <div class="menu-tab" data-tab="harem">宫</div>
+            <div class="menu-tab" data-tab="court">朝</div>
+            <div class="menu-tab" data-tab="keju">科</div>
+            <div class="menu-tab" data-tab="yingzao">造</div>
             <div class="menu-tab" data-tab="tech">气</div>
             <div class="menu-tab" data-tab="decade">年</div>
+            <div class="menu-tab" data-tab="yearend">岁</div>
+            <div class="menu-tab" data-tab="map">图</div>
             <div class="menu-tab" data-tab="markets">市</div>
             <div class="menu-tab" data-tab="censor">宪</div>
             <div class="menu-tab" data-tab="secret">卫</div>
@@ -67,10 +73,24 @@
             <div class="faction-list" id="faction-list"></div>
         </aside>
 
+        <!-- 中央：国事区（永久DOM，切tab不销毁） -->
+        <div class="edict-zone" id="edict-zone">
+            <div class="season-banner" id="season-banner"></div>
+            <div class="edict-paper" id="edict-paper">
+                <div class="edict-from" id="edict-from">【候旨】</div>
+                <h2 class="edict-title" id="edict-title">国事待理</h2>
+                <div class="edict-content" id="edict-content">点右上"下季"推进国事，遇有大事将有急奏呈上。</div>
+            </div>
+        </div>
         <!-- 中央：当前面板 -->
         <section class="center-panel" id="center-panel">
             <!-- 中央内容由各系统动态渲染 -->
         </section>
+        <!-- 中央：已决政事（永久DOM） -->
+        <div class="edict-history" id="edict-history-zone">
+            <h3 class="history-title">已决政事</h3>
+            <div class="history-list" id="history-list"></div>
+        </div>
 
         <!-- 右侧：天象 + 朝报 + 稳定度 -->
         <aside class="right-panel">
@@ -101,6 +121,15 @@
         </aside>
     </main>
 </div>
+
+<!-- 批1：移动端底部导航（<768px 由 CSS 启用） -->
+<nav class="mobile-tabbar" id="mobile-tabbar">
+    <div class="mobile-tab active" data-mview="center"><span class="mt-icon">事</span><span class="mt-label">国事</span></div>
+    <div class="mobile-tab" data-mview="left"><span class="mt-icon">储</span><span class="mt-label">资储</span></div>
+    <div class="mobile-tab" data-mview="menu"><span class="mt-icon">朝</span><span class="mt-label">朝堂</span></div>
+    <div class="mobile-tab" data-mview="right"><span class="mt-icon">天</span><span class="mt-label">天象</span></div>
+</nav>
+<button class="mobile-next-btn" id="mobile-next" title="下季">下季 ▶</button>
 
 <!-- 事件弹窗 -->
 <div class="event-modal" id="event-modal">
@@ -177,6 +206,8 @@
         <h2 class="end-title" id="end-title">国运终焉</h2>
         <div class="end-content" id="end-content"></div>
         <div class="end-stats" id="end-stats"></div>
+        <!-- 批3：结局回响「身后名」区块（编年大事/厂卫卷宗/谥号/史官总评） -->
+        <div class="end-legacy" id="end-legacy"></div>
         <div class="end-buttons">
             <button class="restart-btn" id="restart-btn">再起一朝</button>
             <button class="continue-btn" id="end-continue-btn">载入存档</button>
@@ -184,6 +215,98 @@
     </div>
 </div>
 
+<!-- 批1：岁末大计面板（五步分展 + 玉玺钦此） -->
+<div class="yearend-modal" id="yearend-modal">
+    <div class="yearend-paper">
+        <div class="ye-header">
+            <div class="ye-era" id="ye-era">岁末大计</div>
+            <button class="ye-close" id="ye-close-btn">暂离</button>
+        </div>
+        <div class="ye-steps-bar" id="ye-steps-bar"></div>
+        <div class="ye-body" id="ye-body"></div>
+        <div class="ye-footer" id="ye-footer"></div>
+    </div>
+</div>
+
+<!-- 批1：音效设置弹窗 -->
+<div class="sfx-modal" id="sfx-modal">
+    <div class="sfx-paper">
+        <h2 class="sfx-title">御用音律</h2>
+        <div class="sfx-row">
+            <span class="sfx-label">音效</span>
+            <button class="sfx-toggle" id="sfx-toggle">开</button>
+        </div>
+        <div class="sfx-row">
+            <span class="sfx-label">音量</span>
+            <input type="range" id="sfx-volume" class="sfx-volume" min="0" max="100" value="60">
+        </div>
+        <div class="sfx-hint">钟鼓磬音，皆宫中所制，不假外物。</div>
+        <button class="sfx-close" id="sfx-close">知 道 了</button>
+    </div>
+</div>
+
+<!-- 批2：舆图地区况卡浮层 -->
+<div class="map-modal" id="map-modal">
+    <div class="map-paper">
+        <div class="map-cell-head">
+            <span class="map-cell-name" id="map-cell-name">北直隶</span>
+            <span class="map-cell-tag" id="map-cell-tag">布政司</span>
+            <button class="map-cell-close" id="map-cell-close" onclick="closeMapModal()">退 出</button>
+        </div>
+        <div class="map-cell-status" id="map-cell-status">当前状态：安定</div>
+        <div class="map-cell-desc" id="map-cell-desc"></div>
+        <div class="map-cell-cool" id="map-cell-cool"></div>
+        <div class="map-cell-actions" id="map-cell-actions"></div>
+    </div>
+</div>
+
+<!-- 批3：命将出师浮层（选帅/调饷/兵力/战报急奏） -->
+<div class="map-modal" id="exp-modal">
+    <div class="map-paper exp-paper">
+        <div class="map-cell-head">
+            <span class="map-cell-name" id="exp-title">命将出师</span>
+            <span class="map-cell-tag">九边战守</span>
+            <button class="map-cell-close" id="exp-close" onclick="closeExpModal()">退 出</button>
+        </div>
+        <div class="map-cell-cool" id="exp-subtitle"></div>
+        <div class="exp-body" id="exp-body"></div>
+    </div>
+</div>
+
+<!-- 批2：大臣召见浮层 -->
+<div class="talk-modal" id="talk-modal">
+    <div class="talk-paper">
+        <div class="talk-head">
+            <div class="talk-head-id">
+                <div class="talk-name" id="talk-name"></div>
+                <div class="talk-rank" id="talk-rank"></div>
+            </div>
+            <div class="talk-loyalty" id="talk-loyalty"></div>
+            <button class="talk-close" id="talk-close" onclick="closeTalkModal()">退 下</button>
+        </div>
+        <div class="talk-relation" id="talk-relation"></div>
+        <div class="talk-body" id="talk-body"></div>
+        <div class="talk-hint" id="talk-hint"></div>
+        <div class="talk-actions" id="talk-actions"></div>
+    </div>
+</div>
+
+<!-- 批4：早朝议政浮层 -->
+<div class="cw-modal" id="court-modal">
+    <div class="cw-modal-paper" id="court-paper">
+        <h3 class="cw-modal-title">早朝议政</h3>
+        <div class="cw-modal-body" id="court-body"></div>
+        <button class="cw-btn cw-modal-close" onclick="closeCourtModal()">退朝</button>
+    </div>
+</div>
+<!-- 批4：科举浮层 -->
+<div class="cw-modal" id="keju-modal">
+    <div class="cw-modal-paper" id="keju-paper">
+        <h3 class="cw-modal-title">开科取士</h3>
+        <div class="cw-modal-body" id="keju-body"></div>
+        <button class="cw-btn cw-modal-close" onclick="closeKejuModal()">退场</button>
+    </div>
+</div>
 <!-- 系统弹窗（弹劾/科技/军事/后宫等） -->
 <div class="system-modal" id="system-modal">
     <div class="system-paper" id="system-paper">
@@ -205,7 +328,37 @@
 <script src="data/extras_ui.js"></script>
 <script src="data/extras2.js"></script>
 <script src="modules.js"></script>
+<script src="sfx.js"></script>
+<script src="yearend.js"></script>
+<script src="mobileui.js"></script>
 <script src="script.js"></script>
+<!-- 批2：舆图 + 召见（置于主入口之后、DOMContentLoaded 触发前完成加载） -->
+<script src="map.js"></script>
+<script src="daming_talk.js"></script>
+<!-- 批3：厂卫内帑 + 辽东出征（置于主入口之后、DOMContentLoaded 触发前完成加载） -->
+<script src="cangwei.js"></script>
+<script src="expedition.js"></script>
+<!-- 批4：大幅扩容模块 -->
+<script src="data/events_ext.js"></script>
+<script src="data/memorials_ext.js"></script>
+<script src="data/advice_ext.js"></script>
+<script src="court_session.js"></script>
+<script src="harem_interact.js"></script>
+<script src="diplomacy_interact.js"></script>
+<script src="keju.js"></script>
+<script src="yingzao.js"></script>
+<!-- 批5·纵深扩展 -->
+<script src="military_ops_ext.js"></script>
+<script src="junpi.js"></script>
+<script src="zaiyi.js"></script>
+<script src="lizhi.js"></script>
+<script src="auto.js"></script>
+<script src="batch5_bridge.js"></script>
+<script src="data/achievements_ext.js"></script>
+<!-- 批A：经济深改（物价/常平/开中/市舶/贪腐侵蚀/景气指数） -->
+<script src="economy_market.js"></script>
+<!-- 批B：主线叙事（山河志，四剧本专属主线链+关键节点+专属结局） -->
+<script src="mainline.js"></script>
 
 <script>
 if ('serviceWorker' in navigator) {

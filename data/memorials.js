@@ -196,6 +196,8 @@ function showMemorial(memorial) {
             </div>
         `;
         optEl.onclick = () => {
+            // 批1：朱笔落定音效
+            try { DamingSFX.play('decide'); } catch (e) {}
             // 推进执行
             applyDecision(opt.effect);
             
