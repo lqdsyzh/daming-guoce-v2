@@ -1,0 +1,3849 @@
+/* ============== 汉代美学风格 ============== */
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
+
+:root {
+    --bg-dark: #1a1410;
+    --paper: #f4e8d0;
+    --paper-darker: #e6d4b0;
+    --ink: #2a1f15;
+    --ink-light: #5a4a3a;
+    --accent-red: #8b2c1a;
+    --accent-red-light: #a83828;
+    --accent-gold: #b8893a;
+    --accent-jade: #4a6a4a;
+    --border-double: 3px double #2a1f15;
+    --border-single: 2px solid #2a1f15;
+    --shadow-paper: 0 2px 8px rgba(0,0,0,0.3), inset 0 0 40px rgba(139, 44, 26, 0.05);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Serif SC', 'SimSun', 'STKaiti', 'KaiTi', serif;
+    background: var(--bg-dark);
+    background-image: 
+        radial-gradient(ellipse at top, rgba(184, 137, 58, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at bottom, rgba(139, 44, 26, 0.05) 0%, transparent 50%);
+    color: var(--paper);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(244, 232, 208, 0.02) 2px, rgba(244, 232, 208, 0.02) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(244, 232, 208, 0.02) 2px, rgba(244, 232, 208, 0.02) 4px);
+    z-index: -1;
+}
+
+.game-container {
+    max-width: 1800px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    grid-template-columns: 80px 1fr;
+    gap: 8px;
+    padding: 8px;
+}
+
+.game-container > .dynasty-header { grid-column: 1 / -1; }
+.game-container > .system-menu { grid-row: 2 / 4; grid-column: 1; }
+.game-container > .main-content { grid-row: 2 / 4; grid-column: 2; }
+
+/* 顶部 */
+.dynasty-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: linear-gradient(to bottom, rgba(184, 137, 58, 0.15), rgba(184, 137, 58, 0.05));
+    border: var(--border-double);
+    border-radius: 4px;
+    position: relative;
+}
+
+.dynasty-header::before, .dynasty-header::after {
+    content: '❖';
+    color: var(--accent-gold);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+}
+.dynasty-header::before { left: 10px; }
+.dynasty-header::after { right: 10px; }
+
+.dynasty-title { display: flex; flex-direction: column; gap: 4px; }
+.era-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 24px;
+    color: var(--accent-gold);
+    font-weight: 700;
+    letter-spacing: 4px;
+}
+.emperor {
+    font-size: 13px;
+    color: var(--paper-darker);
+    letter-spacing: 2px;
+}
+
+.time-control { display: flex; align-items: center; gap: 12px; }
+.time-label { font-size: 14px; color: var(--paper); letter-spacing: 2px; }
+
+.time-btn, .save-btn {
+    background: var(--accent-red);
+    color: var(--paper);
+    border: var(--border-single);
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+    border-radius: 2px;
+}
+
+.save-btn { padding: 8px 12px; font-size: 16px; }
+
+.time-btn:hover, .save-btn:hover {
+    background: var(--accent-red-light);
+    transform: translateY(-1px);
+}
+
+/* 左侧系统菜单 */
+.system-menu {
+    background: rgba(244, 232, 208, 0.05);
+    border: var(--border-single);
+    border-radius: 4px;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.menu-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--accent-gold);
+    letter-spacing: 4px;
+    writing-mode: vertical-rl;
+    margin-bottom: 12px;
+}
+
+.menu-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.menu-tab {
+    width: 48px;
+    height: 48px;
+    background: rgba(244, 232, 208, 0.05);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 22px;
+    color: var(--paper-darker);
+    transition: all 0.2s;
+}
+
+.menu-tab:hover {
+    background: rgba(184, 137, 58, 0.15);
+    color: var(--accent-gold);
+}
+
+.menu-tab.active {
+    background: var(--accent-red);
+    color: var(--paper);
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 8px rgba(184, 137, 58, 0.4);
+}
+
+/* 主内容 */
+.main-content {
+    display: grid;
+    grid-template-columns: 240px 1fr 240px;
+    gap: 8px;
+    min-height: 600px;
+}
+
+.left-panel, .right-panel {
+    background: rgba(244, 232, 208, 0.05);
+    border: var(--border-single);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-y: auto;
+    max-height: calc(100vh - 130px);
+}
+
+.panel-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 16px;
+    color: var(--accent-gold);
+    letter-spacing: 4px;
+    border-bottom: 1px solid var(--accent-gold);
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+/* 资源组标题 */
+.resource-group-header {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 12px;
+    letter-spacing: 3px;
+    margin: 8px 0 4px 0;
+    padding-bottom: 2px;
+    border-bottom: 1px dashed currentColor;
+    opacity: 0.85;
+}
+
+/* 资源条目 */
+.resource-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.resource-name {
+    width: 48px;
+    color: var(--paper-darker);
+    letter-spacing: 1px;
+}
+
+.resource-bar {
+    flex: 1;
+    height: 5px;
+    background: rgba(42, 31, 21, 0.5);
+    border: 1px solid var(--ink-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.resource-fill {
+    height: 100%;
+    background: var(--accent-red);
+    transition: width 0.5s ease;
+}
+
+.resource-fill.jade { background: var(--accent-jade); }
+.resource-fill.gold { background: var(--accent-gold); }
+.resource-fill.ink { background: var(--ink-light); }
+.resource-fill.critical { background: var(--accent-red); animation: pulse-critical 1.5s infinite; }
+
+@keyframes pulse-critical {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.resource-value {
+    width: 48px;
+    text-align: right;
+    color: var(--paper);
+    font-weight: 600;
+    font-family: 'Noto Serif SC', monospace;
+}
+
+.resource-value.critical { color: var(--accent-red-light); }
+
+/* 派系 */
+.faction-item {
+    margin-bottom: 6px;
+    padding: 6px 8px;
+    background: rgba(244, 232, 208, 0.03);
+    border-left: 3px solid var(--ink-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.faction-item.hostile { border-left-color: var(--accent-red); }
+.faction-item.ally { border-left-color: var(--accent-jade); }
+
+.faction-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--accent-gold);
+    transition: width 0.5s ease;
+}
+
+.faction-item.hostile .faction-bar { background: var(--accent-red); }
+.faction-item.ally .faction-bar { background: var(--accent-jade); }
+
+.faction-name { font-size: 13px; color: var(--paper); font-weight: 600; margin-bottom: 2px; letter-spacing: 1px; }
+.faction-leader { font-size: 10px; color: var(--paper-darker); margin-bottom: 2px; }
+.faction-mood { font-size: 11px; color: var(--accent-gold); font-style: italic; }
+
+/* 稳定度 */
+.stability-box {
+    background: rgba(42, 31, 21, 0.3);
+    padding: 8px;
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    text-align: center;
+}
+
+.stability-level {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 18px;
+    letter-spacing: 6px;
+    margin-bottom: 4px;
+    padding: 2px 0;
+}
+
+.stability-level.鼎盛 { color: #4a6a4a; }
+.stability-level.稳定 { color: #5a8a5a; }
+.stability-level.正常 { color: var(--accent-gold); }
+.stability-level.不稳 { color: #c08850; }
+.stability-level.危机 { color: var(--accent-red-light); }
+.stability-level.崩溃 { color: #ff4040; animation: pulse-critical 1s infinite; }
+
+.stability-bar {
+    height: 4px;
+    background: rgba(42, 31, 21, 0.5);
+    border: 1px solid var(--ink-light);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.stability-fill { height: 100%; background: var(--accent-jade); transition: width 0.5s; }
+
+/* 中央面板 */
+.center-panel {
+    background: var(--paper);
+    color: var(--ink);
+    border: var(--border-double);
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: var(--shadow-paper);
+    position: relative;
+    overflow-y: auto;
+    max-height: calc(100vh - 130px);
+}
+
+.center-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(42, 31, 21, 0.04) 28px, rgba(42, 31, 21, 0.04) 30px);
+    pointer-events: none;
+}
+
+.season-banner {
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 8px 0;
+    border-top: 1px solid var(--ink-light);
+    border-bottom: 1px solid var(--ink-light);
+    position: relative;
+}
+
+.season-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 28px;
+    color: var(--accent-red);
+    letter-spacing: 12px;
+    display: inline-block;
+    margin-right: 16px;
+}
+
+.season-status { font-size: 12px; color: var(--ink-light); letter-spacing: 2px; font-style: italic; }
+
+.edict-paper {
+    padding: 12px;
+    border: 1px solid var(--ink-light);
+    background: rgba(244, 232, 208, 0.4);
+    margin-bottom: 16px;
+}
+
+.edict-from { font-size: 11px; color: var(--ink-light); letter-spacing: 1px; margin-bottom: 4px; border-bottom: 1px dashed var(--ink-light); padding-bottom: 2px; }
+.edict-title { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 18px; color: var(--ink); margin-bottom: 8px; letter-spacing: 2px; }
+.edict-content { font-size: 13px; line-height: 1.7; color: var(--ink); text-indent: 2em; }
+
+.edict-history { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--ink-light); }
+.history-title { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 14px; color: var(--accent-red); margin-bottom: 8px; letter-spacing: 3px; border-bottom: 1px solid var(--accent-red); padding-bottom: 4px; }
+.history-list { max-height: 200px; overflow-y: auto; padding-right: 6px; }
+.history-item { padding: 6px 10px; background: rgba(244, 232, 208, 0.3); border-left: 2px solid var(--ink-light); margin-bottom: 4px; font-size: 12px; }
+.history-item-time { font-size: 10px; color: var(--ink-light); letter-spacing: 1px; }
+.history-item-title { color: var(--ink); margin-top: 2px; }
+.history-item-decision { display: inline-block; margin-top: 2px; padding: 1px 5px; background: var(--accent-red); color: var(--paper); font-size: 10px; border-radius: 2px; }
+
+/* 报告标题 */
+.report-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 22px;
+    color: var(--accent-red);
+    letter-spacing: 8px;
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 8px 0;
+    border-bottom: 2px solid var(--accent-red);
+    text-shadow: 1px 1px 0 var(--accent-gold);
+}
+
+.section-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 16px;
+    color: var(--accent-red);
+    letter-spacing: 4px;
+    margin: 16px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--accent-red);
+}
+
+.report-summary, .military-summary, .wonder-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(184, 137, 58, 0.1);
+    border: 1px dashed var(--accent-gold);
+    border-radius: 4px;
+    flex-wrap: wrap;
+}
+
+.summary-item {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 8px;
+    background: rgba(244, 232, 208, 0.4);
+    border-radius: 4px;
+}
+
+.summary-label { font-size: 11px; color: var(--ink-light); letter-spacing: 2px; margin-bottom: 4px; }
+.summary-value { font-family: 'Noto Serif SC', monospace; font-size: 18px; font-weight: 600; color: var(--ink); }
+.summary-value.jade { color: #4a6a4a; }
+.summary-value.ink { color: var(--ink-light); }
+
+.finance-table { background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); border-radius: 4px; padding: 8px; margin-bottom: 12px; }
+.finance-row { display: flex; justify-content: space-between; padding: 4px 8px; font-size: 13px; border-bottom: 1px dashed var(--ink-light); }
+.finance-row:last-child { border-bottom: none; }
+.finance-row.正 { color: #4a6a4a; }
+.finance-row.负 { color: #8b2c1a; }
+
+.storage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.storage-item {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 6px;
+    text-align: center;
+}
+
+.storage-name { font-size: 12px; color: var(--ink); font-weight: 600; }
+.storage-amount { font-size: 10px; color: var(--ink-light); font-family: monospace; margin-top: 2px; }
+
+.policy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+}
+
+.policy-btn {
+    padding: 8px 12px;
+    background: rgba(244, 232, 208, 0.5);
+    border: 1px solid var(--ink-light);
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--ink);
+    transition: all 0.2s;
+    border-radius: 4px;
+    text-align: left;
+}
+
+.policy-btn:hover {
+    background: var(--paper-darker);
+    border-color: var(--accent-red);
+}
+
+/* 大臣卡片 */
+.personnel-tabs, .impeach-tabs, .tech-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 6px 12px;
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--ink);
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover { background: var(--paper-darker); }
+.filter-btn.active { background: var(--accent-red); color: var(--paper); border-color: var(--accent-gold); }
+
+.ministers-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+}
+
+.minister-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+    position: relative;
+}
+
+.minister-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.minister-rank-tag {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.minister-rank-tag[data-cat="civil"] { background: #4a6a4a; }
+.minister-rank-tag[data-cat="military"] { background: #8b2c1a; }
+.minister-rank-tag[data-cat="royal"] { background: #b8893a; }
+.minister-rank-tag[data-cat="eunuch"] { background: #6a5a4a; }
+.minister-rank-tag[data-cat="consort"] { background: #a83828; }
+
+.minister-info { flex: 1; }
+.minister-name { font-size: 14px; color: var(--ink); font-weight: 600; }
+.minister-position { font-size: 11px; color: var(--ink-light); }
+.minister-favor {
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    padding: 2px 6px;
+    background: rgba(184, 137, 58, 0.2);
+    border-radius: 3px;
+}
+.minister-favor.good { color: #4a6a4a; background: rgba(74, 106, 74, 0.2); }
+.minister-favor.bad { color: #8b2c1a; background: rgba(139, 44, 26, 0.2); }
+
+.minister-traits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px; }
+.trait { display: flex; align-items: center; gap: 2px; font-size: 10px; }
+.trait > span:first-child { color: var(--ink-light); width: 12px; }
+.trait-bar { flex: 1; height: 4px; background: rgba(42, 31, 21, 0.3); border-radius: 2px; overflow: hidden; }
+.trait-fill { height: 100%; background: var(--accent-gold); }
+.trait > span:last-child { font-family: monospace; color: var(--ink); }
+
+.minister-actions { display: flex; gap: 4px; }
+.act-btn {
+    flex: 1;
+    padding: 4px 6px;
+    background: rgba(244, 232, 208, 0.5);
+    border: 1px solid var(--ink-light);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--ink);
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.act-btn:hover { background: var(--paper-darker); border-color: var(--accent-red); }
+
+.rank-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px; margin-bottom: 12px; }
+.rank-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 3px;
+    font-size: 12px;
+}
+.rank-name { color: var(--ink); font-weight: 600; }
+.rank-holder { color: var(--ink); }
+.rank-loyalty { color: var(--ink-light); font-family: monospace; }
+
+/* 弹劾案 */
+.case-card { background: rgba(244, 232, 208, 0.4); border: 1px solid var(--ink-light); border-radius: 4px; padding: 12px; margin-bottom: 8px; }
+.case-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.case-name { font-size: 15px; color: var(--ink); font-weight: 600; }
+.case-charge { font-size: 12px; color: var(--ink-light); }
+.case-actions h4 { font-size: 12px; color: var(--accent-red); margin-bottom: 6px; letter-spacing: 2px; }
+.case-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 4px; }
+.case-btn {
+    padding: 6px 8px;
+    background: rgba(244, 232, 208, 0.5);
+    border: 1px solid var(--ink-light);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--ink);
+    border-radius: 3px;
+    text-align: left;
+}
+.case-btn:hover { background: var(--paper-darker); border-color: var(--accent-red); }
+
+.law-table { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.law-row { padding: 4px 8px; background: rgba(244, 232, 208, 0.3); border-radius: 3px; font-size: 12px; }
+.law-name { color: var(--ink); font-weight: 600; margin-right: 8px; }
+.law-effect { color: var(--ink-light); }
+.law-impact { color: var(--accent-red); font-size: 10px; margin-left: 4px; }
+
+.appeal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.appeal-card { background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); border-radius: 4px; padding: 10px; }
+.appeal-name { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 14px; color: var(--accent-red); margin-bottom: 4px; letter-spacing: 2px; }
+.appeal-effect { font-size: 11px; color: var(--ink-light); }
+
+.empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--ink-light);
+    font-style: italic;
+    font-size: 13px;
+}
+
+.hint-text { color: var(--ink-light); font-size: 12px; margin-bottom: 8px; font-style: italic; }
+
+/* 奇观 */
+.wonder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.wonder-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+}
+.wonder-card.built { background: rgba(74, 106, 74, 0.2); border-color: #4a6a4a; }
+.wonder-card.building { background: rgba(184, 137, 58, 0.2); border-color: var(--accent-gold); }
+.wonder-name { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 16px; color: var(--accent-red); letter-spacing: 2px; }
+.wonder-desc { font-size: 11px; color: var(--ink-light); margin: 4px 0; }
+.wonder-cost { font-size: 10px; color: var(--ink); font-family: monospace; }
+.wonder-effect { font-size: 10px; color: var(--ink); margin: 4px 0; }
+.wonder-btn, .tech-btn {
+    width: 100%;
+    padding: 6px;
+    background: var(--accent-red);
+    color: var(--paper);
+    border: 1px solid var(--accent-gold);
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 3px;
+    margin-top: 6px;
+}
+.wonder-btn:hover, .tech-btn:hover { background: var(--accent-red-light); }
+.wonder-status { font-size: 11px; color: var(--accent-red); text-align: center; margin-top: 4px; font-style: italic; }
+
+/* 外交 */
+.nation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.nation-card { background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); border-radius: 4px; padding: 10px; }
+.nation-card[data-type="敌国"] { border-left: 3px solid var(--accent-red); }
+.nation-card[data-type="属国"] { border-left: 3px solid var(--accent-jade); }
+.nation-card[data-type="邻国"] { border-left: 3px solid var(--accent-gold); }
+.nation-name { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 16px; color: var(--accent-red); letter-spacing: 2px; }
+.nation-type { font-size: 11px; color: var(--ink-light); }
+.nation-traits { font-size: 10px; color: var(--ink); margin: 4px 0; }
+.nation-bars { margin: 4px 0; }
+.nation-bar { display: flex; align-items: center; gap: 4px; font-size: 10px; margin: 2px 0; }
+.nation-bar > span:first-child { width: 32px; }
+.nation-bar > div { flex: 1; height: 4px; background: rgba(42, 31, 21, 0.3); border-radius: 2px; overflow: hidden; }
+.nation-fill-hostile { height: 100%; background: var(--accent-red); }
+.nation-fill-strength { height: 100%; background: var(--accent-gold); }
+.nation-tribute { font-size: 10px; color: var(--ink-light); margin: 4px 0; }
+.nation-actions { display: flex; gap: 4px; }
+
+/* 军事 */
+.region-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.region-card { background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); border-radius: 4px; padding: 10px; }
+.region-name { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 15px; color: var(--accent-red); }
+.region-troops { font-size: 11px; color: var(--ink-light); margin: 4px 0; }
+.region-bars .region-bar { display: flex; align-items: center; gap: 4px; font-size: 10px; margin: 2px 0; }
+.region-bars .region-bar > span:first-child { width: 32px; }
+.region-bars .region-bar .bar { flex: 1; height: 4px; background: rgba(42, 31, 21, 0.3); border-radius: 2px; overflow: hidden; }
+.region-bars .region-bar .bar-fill { height: 100%; }
+.bar-fill.bad { background: var(--accent-red); }
+.bar-fill.jade { background: var(--accent-jade); }
+.bar-fill.gold { background: var(--accent-gold); }
+.region-actions { display: flex; gap: 4px; margin-top: 6px; }
+
+.troop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.troop-card { background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); border-radius: 3px; padding: 6px; text-align: center; }
+.troop-name { font-size: 12px; color: var(--ink); font-weight: 600; }
+.troop-stats { font-size: 10px; color: var(--ink-light); font-family: monospace; margin-top: 2px; }
+
+/* 后宫 */
+.harem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.consort-card { background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); border-radius: 4px; padding: 10px; }
+.consort-card[data-rank="1"] { border-left: 3px solid var(--accent-red); }
+.consort-card[data-rank="2"] { border-left: 3px solid var(--accent-gold); }
+.consort-card[data-rank="3"], .consort-card[data-rank="4"] { border-left: 3px solid var(--accent-jade); }
+.consort-name { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 15px; color: var(--accent-red); }
+.consort-rank { font-size: 11px; color: var(--ink-light); }
+.consort-stat { font-size: 11px; color: var(--ink); font-family: monospace; }
+.consort-actions { display: flex; gap: 4px; margin-top: 6px; }
+
+.rule-list, .prince-name-list, .book-list, .river-list, .target-grid, .currency-list, .storage-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.rule-tag, .prince-tag, .book-tag, .river-tag, .target-tag, .currency-item {
+    padding: 3px 8px;
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--ink);
+}
+
+.currency-item { display: flex; justify-content: space-between; min-width: 140px; }
+.currency-item span:last-child { font-family: monospace; color: var(--ink-light); }
+
+/* 科技 */
+.tech-category { margin-bottom: 16px; }
+.tech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.tech-card { background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); border-radius: 4px; padding: 8px; }
+.tech-card.researched { background: rgba(74, 106, 74, 0.2); border-color: #4a6a4a; }
+.tech-card.locked { opacity: 0.5; }
+.tech-name { font-size: 13px; color: var(--ink); font-weight: 600; }
+.tech-cost { font-size: 10px; color: var(--ink-light); font-family: monospace; }
+.tech-effect { font-size: 10px; color: var(--ink); margin: 4px 0; }
+.tech-prereq { font-size: 10px; color: var(--accent-red); }
+.tech-status { font-size: 10px; color: var(--accent-gold); text-align: center; margin-top: 4px; font-style: italic; }
+
+/* 禁府 */
+.action-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.action-card { background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); border-radius: 4px; padding: 10px; cursor: pointer; transition: all 0.2s; }
+.action-card:hover { background: var(--paper-darker); border-color: var(--accent-red); }
+.action-name { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 14px; color: var(--accent-red); }
+.action-cost { font-size: 10px; color: var(--ink-light); font-family: monospace; }
+.action-effect { font-size: 10px; color: var(--ink); margin-top: 4px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-2 h4 { font-size: 13px; color: var(--accent-red); margin-bottom: 6px; letter-spacing: 2px; }
+
+/* 弹窗 */
+.script-modal, .end-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.event-modal {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 480px;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(2px);
+    animation: slide-in 0.3s ease-out;
+}
+
+@keyframes slide-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.script-modal.active, .end-modal.active, .event-modal.active { display: flex; }
+
+.script-paper, .end-paper {
+    background: var(--paper);
+    color: var(--ink);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: var(--border-double);
+    padding: 32px;
+    box-shadow: 0 0 40px rgba(184, 137, 58, 0.3);
+    position: relative;
+    animation: paper-in 0.4s ease-out;
+    border-radius: 4px;
+}
+
+.event-paper {
+    background: var(--paper);
+    color: var(--ink);
+    max-width: 440px;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: var(--border-double);
+    padding: 24px;
+    box-shadow: 0 0 30px rgba(184, 137, 58, 0.4), inset 0 0 40px rgba(139, 44, 26, 0.05);
+    position: relative;
+    border-radius: 4px;
+}
+
+/* ===== 奏折弹窗（v3 仪式化）===== */
+.memorial-modal {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 520px;
+    background: rgba(0,0,0,0.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(3px);
+    animation: slide-in 0.4s ease-out;
+}
+
+.memorial-modal.active { display: flex; }
+
+.memorial-paper {
+    background: var(--paper);
+    color: var(--ink);
+    max-width: 500px;
+    width: 95%;
+    max-height: 92vh;
+    overflow-y: auto;
+    border: 4px double var(--accent-red);
+    box-shadow: 0 0 40px rgba(184, 137, 58, 0.5);
+    position: relative;
+    background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(42, 31, 21, 0.06) 28px, rgba(42, 31, 21, 0.06) 30px);
+    border-radius: 6px;
+}
+
+.memorial-ribbon {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: linear-gradient(90deg, var(--accent-red) 0%, var(--accent-red-light) 100%);
+    color: var(--paper);
+    border-bottom: 3px double var(--accent-gold);
+    border-radius: 4px 4px 0 0;
+}
+
+.memorial-ministry {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 16px;
+    letter-spacing: 4px;
+    font-weight: 700;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+
+.memorial-time { font-size: 11px; letter-spacing: 2px; opacity: 0.9; }
+
+.memorial-body {
+    padding: 24px 32px;
+    position: relative;
+    border-bottom: 1px dashed var(--ink-light);
+}
+
+.memorial-handle {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 4px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--accent-red) 0%, var(--accent-gold) 50%, var(--accent-red) 100%);
+    border-radius: 2px;
+}
+
+.memorial-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 22px;
+    color: var(--accent-red);
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+    text-align: center;
+    text-shadow: 1px 1px 0 var(--accent-gold);
+}
+
+.memorial-content {
+    font-size: 14px;
+    line-height: 2;
+    color: var(--ink);
+    text-indent: 2em;
+    padding: 8px 0;
+    border-top: 1px solid var(--ink-light);
+    border-bottom: 1px solid var(--ink-light);
+    margin-top: 12px;
+}
+
+.pini-section {
+    margin: 16px 32px;
+    padding: 12px 16px;
+    background: rgba(184, 137, 58, 0.1);
+    border-left: 4px solid var(--accent-gold);
+    border-radius: 4px;
+}
+
+.pini-label {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 12px;
+    color: var(--accent-gold);
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+}
+
+.pini-text {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 18px;
+    color: var(--ink);
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+}
+
+.pini-reason {
+    font-size: 12px;
+    color: var(--ink-light);
+    line-height: 1.6;
+    font-style: italic;
+}
+
+.pihong-section {
+    margin: 16px 32px;
+    display: flex;
+    justify-content: center;
+}
+
+.seal-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(184, 137, 58, 0.15), rgba(139, 44, 26, 0.15));
+    border: 2px solid var(--accent-red);
+    border-radius: 50px;
+}
+
+.seal-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 28px;
+    font-weight: 700;
+    border: 3px double var(--accent-gold);
+    box-shadow: 0 0 12px rgba(139, 44, 26, 0.4);
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+
+.seal-info { text-align: left; }
+.seal-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+}
+
+.seal-desc { font-size: 11px; color: var(--ink-light); }
+
+.memorial-decision-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--accent-red);
+    text-align: center;
+    letter-spacing: 6px;
+    margin: 16px 32px 12px 32px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent-red);
+}
+
+.memorial-choices {
+    padding: 0 32px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.memorial-option {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(244, 232, 208, 0.5);
+    border: 1px solid var(--ink-light);
+    border-left: 4px solid var(--ink-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 3px;
+}
+
+.memorial-option:hover {
+    background: var(--paper-darker);
+    border-left-color: var(--accent-red);
+    transform: translateX(4px);
+}
+
+.memorial-option-seal {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 22px;
+    font-weight: 700;
+    border: 2px solid var(--accent-gold);
+    flex-shrink: 0;
+}
+
+.memorial-option-body { flex: 1; min-width: 0; }
+.memorial-option-verb {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--accent-red);
+    font-weight: 700;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+}
+
+.memorial-option-text { font-size: 13px; color: var(--ink); margin-bottom: 4px; }
+.memorial-option-effect {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-bottom: 4px;
+    padding: 2px 6px;
+    background: rgba(74, 106, 74, 0.1);
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.memorial-option-hint {
+    font-size: 11px;
+    color: var(--ink-light);
+    font-style: italic;
+}
+
+@keyframes paper-in {
+    from { transform: scale(0.9) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.event-header, .end-era {
+    font-size: 13px;
+    color: var(--ink-light);
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--ink-light);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.event-title, .end-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 22px;
+    color: var(--accent-red);
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+}
+
+.end-title { text-align: center; font-size: 28px; }
+
+.event-content {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--ink);
+    text-indent: 2em;
+    margin-bottom: 16px;
+    padding: 10px;
+    background: rgba(244, 232, 208, 0.3);
+    border-left: 3px solid var(--accent-red);
+}
+
+.event-choices, .end-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.end-buttons { flex-direction: row; }
+
+.decision-option {
+    padding: 10px 14px;
+    background: rgba(244, 232, 208, 0.5);
+    border: 1px solid var(--ink-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+.decision-option:hover { background: var(--paper-darker); border-color: var(--accent-red); transform: translateX(4px); }
+.decision-option::before { content: '▶'; color: var(--accent-red); margin-right: 8px; font-size: 10px; }
+.decision-option-hint { display: block; font-size: 11px; color: var(--ink-light); margin-top: 4px; font-style: italic; }
+
+.script-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 40px;
+    color: var(--accent-red);
+    text-align: center;
+    letter-spacing: 16px;
+    margin-bottom: 4px;
+    text-shadow: 2px 2px 0 var(--accent-gold);
+}
+
+.script-subtitle { font-size: 14px; color: var(--ink-light); text-align: center; letter-spacing: 4px; margin-bottom: 20px; }
+
+.script-warning {
+    background: rgba(139, 44, 26, 0.1);
+    border: 1px solid var(--accent-red);
+    padding: 12px;
+    color: var(--accent-red);
+    font-size: 12px;
+    line-height: 1.8;
+    text-align: center;
+    border-radius: 4px;
+    margin: 12px 0;
+}
+
+.script-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+
+.script-option {
+    padding: 12px 16px;
+    background: rgba(244, 232, 208, 0.4);
+    border: 1px solid var(--ink-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    gap: 12px;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.script-option:hover { background: var(--paper-darker); border-color: var(--accent-red); transform: translateX(4px); }
+.script-option.continue-option { border-color: var(--accent-gold); background: rgba(184, 137, 58, 0.15); }
+
+.script-option-title { font-family: 'Ma Shan Zheng', 'KaiTi', serif; font-size: 16px; color: var(--ink); margin-bottom: 4px; letter-spacing: 2px; }
+.script-option-desc { font-size: 12px; color: var(--ink-light); line-height: 1.5; }
+.script-option-difficulty { text-align: right; color: var(--accent-red); font-size: 14px; letter-spacing: -2px; }
+
+.end-content {
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--ink);
+    text-indent: 2em;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: rgba(244, 232, 208, 0.3);
+    border-left: 3px solid var(--accent-red);
+    font-style: italic;
+}
+
+.end-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+.end-stat { padding: 6px 10px; background: rgba(244, 232, 208, 0.3); border: 1px solid var(--ink-light); font-size: 12px; display: flex; justify-content: space-between; border-radius: 3px; }
+.end-stat-label { color: var(--ink-light); }
+.end-stat-value { color: var(--ink); font-weight: 600; }
+
+.restart-btn, .continue-btn {
+    flex: 1;
+    background: var(--accent-red);
+    color: var(--paper);
+    border: var(--border-single);
+    padding: 10px;
+    cursor: pointer;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    letter-spacing: 4px;
+    transition: all 0.2s;
+    border-radius: 4px;
+}
+
+.restart-btn:hover, .continue-btn:hover { background: var(--accent-red-light); }
+
+.continue-btn { background: var(--accent-gold); }
+.continue-btn:hover { background: #c89842; }
+
+/* 新闻 */
+.news-list { max-height: 240px; overflow-y: auto; }
+.news-item {
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--ink-light);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--paper-darker);
+    position: relative;
+    padding-left: 10px;
+}
+.news-item::before { content: '▸'; position: absolute; left: 0; color: var(--accent-gold); }
+.news-time { color: var(--accent-gold); font-weight: 600; margin-right: 4px; }
+.news-text.critical { color: var(--accent-red-light); font-weight: 600; }
+
+.celestial { background: rgba(42, 31, 21, 0.3); padding: 8px; border: 1px solid var(--ink-light); border-radius: 4px; }
+.celestial-item { display: flex; justify-content: space-between; padding: 3px 0; font-size: 11px; }
+.celestial-label { color: var(--paper-darker); }
+.celestial-value { color: var(--accent-gold); font-weight: 600; }
+.celestial-value.bad { color: var(--accent-red-light); }
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(42, 31, 21, 0.3); }
+::-webkit-scrollbar-thumb { background: var(--ink-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
+
+/* 数字变化动效 */
+@keyframes number-flash-up {
+    0% { color: var(--accent-jade); transform: scale(1.3); }
+    100% { color: var(--paper); transform: scale(1); }
+}
+@keyframes number-flash-down {
+    0% { color: var(--accent-red-light); transform: scale(1.3); }
+    100% { color: var(--paper); transform: scale(1); }
+}
+.stat-value.flash-up { animation: number-flash-up 0.8s ease-out; }
+.stat-value.flash-down { animation: number-flash-down 0.8s ease-out; }
+
+@media (max-width: 1200px) {
+    .game-container { grid-template-columns: 60px 1fr; }
+    .main-content { grid-template-columns: 1fr; }
+    .left-panel, .right-panel { max-height: 300px; }
+}
+
+/* ===== v2.1 新增 ===== */
+
+/* 十年述职 */
+.decade-review {
+    background: rgba(184, 137, 58, 0.1);
+    border: 2px double var(--accent-gold);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.review-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 18px;
+    color: var(--accent-red);
+    text-align: center;
+    letter-spacing: 6px;
+    margin-bottom: 12px;
+}
+
+.review-rating {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 32px;
+    text-align: center;
+    letter-spacing: 12px;
+    margin: 12px 0;
+    font-weight: 700;
+    text-shadow: 2px 2px 0 var(--accent-gold);
+}
+
+.review-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px 12px;
+    margin: 12px 0;
+}
+
+.review-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: rgba(244, 232, 208, 0.3);
+    border-radius: 3px;
+    font-size: 12px;
+    border: 1px solid var(--ink-light);
+}
+
+.review-row span:first-child { color: var(--ink-light); }
+.review-row span:last-child { color: var(--ink); font-weight: 600; }
+
+.review-comment {
+    text-align: center;
+    font-style: italic;
+    color: var(--ink);
+    font-size: 14px;
+    margin-top: 12px;
+    padding: 8px;
+    background: rgba(244, 232, 208, 0.4);
+    border-radius: 3px;
+}
+
+/* 成就墙 */
+.achievement-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.achievement-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.achievement-card.unlocked {
+    background: linear-gradient(135deg, rgba(184, 137, 58, 0.2), rgba(74, 106, 74, 0.15));
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 8px rgba(184, 137, 58, 0.15);
+}
+
+.achievement-card.locked {
+    opacity: 0.4;
+    background: rgba(42, 31, 21, 0.2);
+}
+
+.achievement-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.achievement-card.locked .achievement-icon {
+    background: var(--ink-light);
+}
+
+.achievement-info { flex: 1; min-width: 0; }
+.achievement-name { font-size: 13px; color: var(--ink); font-weight: 600; margin-bottom: 2px; }
+.achievement-desc { font-size: 11px; color: var(--ink-light); }
+
+/* 大事记 */
+.timeline-events { max-height: 400px; overflow-y: auto; padding-right: 4px; }
+.timeline-item {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: rgba(244, 232, 208, 0.3);
+    border-left: 3px solid var(--ink-light);
+    border-radius: 3px;
+}
+.timeline-time { font-size: 11px; color: var(--ink-light); letter-spacing: 1px; margin-bottom: 2px; }
+.timeline-title { font-size: 13px; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+.timeline-decision {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--accent-red);
+    color: var(--paper);
+    font-size: 11px;
+    border-radius: 2px;
+}
+
+/* 菜单栏13个tab的样式微调 */
+.menu-tab { width: 44px; height: 44px; font-size: 20px; }
+
+/* 年代tab子菜单 */
+.decade-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--ink-light);
+    padding-bottom: 8px;
+}
+
+/* 事件手册 */
+.handbook-filters { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+.handbook-item {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 6px;
+}
+.handbook-title { font-size: 14px; color: var(--ink); font-weight: 600; }
+.handbook-type { font-size: 11px; color: var(--accent-red); margin-bottom: 4px; }
+.handbook-desc { font-size: 12px; color: var(--ink-light); margin-bottom: 6px; line-height: 1.5; }
+.handbook-options { display: grid; gap: 4px; }
+.handbook-option {
+    padding: 4px 8px;
+    background: rgba(244, 232, 208, 0.5);
+    border-radius: 3px;
+    font-size: 11px;
+}
+.handbook-opt-text { color: var(--ink); margin-right: 8px; }
+.handbook-opt-hint { color: var(--ink-light); font-size: 10px; }
+
+/* 决策历史 */
+.decision-list { max-height: 500px; overflow-y: auto; padding-right: 4px; }
+.decision-item {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: rgba(244, 232, 208, 0.3);
+    border-left: 3px solid var(--ink-light);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.decision-item:hover {
+    background: var(--paper-darker);
+    border-left-color: var(--accent-red);
+    transform: translateX(2px);
+}
+.decision-item-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.decision-item-time { font-size: 11px; color: var(--ink-light); }
+.decision-item-type {
+    font-size: 10px;
+    padding: 1px 6px;
+    background: var(--accent-gold);
+    color: var(--paper);
+    border-radius: 2px;
+}
+.decision-item-type.type-disaster { background: #8b2c1a; }
+.decision-item-type.type-border { background: #5a4a3a; }
+.decision-item-type.type-internal { background: #4a6a4a; }
+.decision-item-type.type-economy { background: #b8893a; }
+.decision-item-type.type-diplomacy { background: #5a6a7a; }
+.decision-item-type.type-royal { background: #a83828; }
+.decision-item-title { font-size: 13px; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+.decision-item-action {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--accent-red);
+    color: var(--paper);
+    font-size: 10px;
+    border-radius: 2px;
+}
+
+/* 派系细节卡 */
+.faction-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+.faction-detail-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+}
+.faction-detail-name { font-size: 13px; color: var(--ink); font-weight: 600; }
+.faction-detail-value {
+    font-family: monospace;
+    font-size: 18px;
+    color: var(--accent-red);
+    font-weight: 700;
+    margin: 4px 0;
+}
+.faction-detail-status { font-size: 11px; color: var(--ink-light); font-style: italic; }
+
+/* ===== v3.0 新增 ===== */
+
+/* 个人仪表盘 */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.dashboard-card {
+    background: linear-gradient(135deg, rgba(184, 137, 58, 0.15), rgba(244, 232, 208, 0.4));
+    border: 1px solid var(--accent-gold);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+}
+.dashboard-label { font-size: 11px; color: var(--ink-light); letter-spacing: 2px; margin-bottom: 4px; }
+.dashboard-value-big {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 32px;
+    color: var(--accent-red);
+    font-weight: 700;
+    line-height: 1;
+    margin: 4px 0;
+}
+.dashboard-sub { font-size: 10px; color: var(--ink-light); margin-bottom: 4px; }
+.dashboard-bar {
+    height: 6px;
+    background: rgba(42, 31, 21, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.dashboard-fill { height: 100%; transition: width 0.5s; }
+
+/* 五德 */
+.wude-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.wude-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+}
+.wude-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 24px;
+    color: var(--accent-red);
+    letter-spacing: 8px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+.wude-bar {
+    height: 8px;
+    background: rgba(42, 31, 21, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 4px;
+}
+.wude-fill { height: 100%; transition: width 0.5s; }
+.wude-text {
+    position: absolute;
+    right: 4px;
+    top: 0;
+    font-size: 10px;
+    color: var(--paper);
+    line-height: 8px;
+}
+.wude-sub { font-size: 10px; color: var(--ink-light); text-align: center; }
+
+/* 朝报 */
+.personal-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: rgba(244, 232, 208, 0.3);
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* 战役 */
+.campaign-card {
+    background: linear-gradient(135deg, rgba(139, 44, 26, 0.15), rgba(244, 232, 208, 0.4));
+    border: 2px solid var(--accent-red);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+.campaign-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 16px;
+    color: var(--accent-red);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+.campaign-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.campaign-bar {
+    flex: 1;
+    height: 12px;
+    background: rgba(42, 31, 21, 0.3);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--accent-red);
+}
+.campaign-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-gold));
+    transition: width 0.5s;
+}
+.campaign-progress-text {
+    font-family: monospace;
+    color: var(--accent-red);
+    font-weight: 700;
+    min-width: 80px;
+    text-align: right;
+}
+.campaign-info { font-size: 12px; color: var(--ink-light); }
+.campaign-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.campaign-btn {
+    padding: 10px 14px;
+    background: var(--accent-red);
+    color: var(--paper);
+    border: 1px solid var(--accent-gold);
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+.campaign-btn:hover { background: var(--accent-red-light); transform: translateY(-1px); }
+
+/* 科举 */
+.exam-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.exam-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 12px;
+}
+.exam-level {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 18px;
+    color: var(--accent-red);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+}
+.exam-info { font-size: 12px; color: var(--ink); margin-bottom: 8px; line-height: 1.8; }
+.exam-btn {
+    width: 100%;
+    padding: 8px;
+    background: var(--accent-red);
+    color: var(--paper);
+    border: 1px solid var(--accent-gold);
+    cursor: pointer;
+    font-size: 13px;
+    border-radius: 3px;
+}
+.exam-btn:hover { background: var(--accent-red-light); }
+.exam-result-box {
+    background: rgba(184, 137, 58, 0.1);
+    border: 2px solid var(--accent-gold);
+    border-radius: 4px;
+    padding: 12px;
+    margin-top: 12px;
+}
+.exam-result-box h4 {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    color: var(--accent-red);
+    text-align: center;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+}
+.exam-rankings { display: grid; gap: 4px; }
+.exam-ranking {
+    display: grid;
+    grid-template-columns: 40px 1fr 60px 100px;
+    padding: 4px 8px;
+    background: rgba(244, 232, 208, 0.5);
+    border-radius: 3px;
+    font-size: 12px;
+}
+.exam-rank { color: var(--accent-red); font-weight: 700; }
+.exam-name { color: var(--ink); font-weight: 600; }
+.exam-age, .exam-origin { color: var(--ink-light); }
+
+/* 水利 */
+.water-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+.water-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 12px;
+}
+.water-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 16px;
+    color: var(--accent-red);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+.water-region { font-size: 11px; color: var(--ink-light); margin-bottom: 8px; }
+.water-bars { margin-bottom: 8px; }
+.water-stat {
+    display: grid;
+    grid-template-columns: 40px 1fr 30px;
+    gap: 4px;
+    align-items: center;
+    margin: 4px 0;
+    font-size: 11px;
+}
+.water-bar {
+    height: 6px;
+    background: rgba(42, 31, 21, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.water-fill { height: 100%; }
+.water-fill.jade { background: var(--accent-jade); }
+.water-fill.gold { background: var(--accent-gold); }
+.water-fill.bad { background: var(--accent-red); }
+.water-desc { font-size: 11px; color: var(--ink-light); margin-bottom: 8px; font-style: italic; }
+.water-actions { display: flex; gap: 6px; }
+.water-btn {
+    flex: 1;
+    padding: 6px;
+    background: rgba(184, 137, 58, 0.2);
+    border: 1px solid var(--accent-gold);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--ink);
+    border-radius: 3px;
+}
+.water-btn:hover { background: var(--accent-gold); color: var(--paper); }
+
+/* 赈济 */
+.relief-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+}
+.relief-btn {
+    padding: 12px;
+    background: rgba(74, 106, 74, 0.2);
+    border: 1px solid var(--accent-jade);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink);
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+.relief-btn:hover { background: var(--accent-jade); color: var(--paper); }
+
+/* 节气 */
+.terms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+}
+.term-card {
+    padding: 8px;
+    background: rgba(244, 232, 208, 0.4);
+    border: 1px solid var(--ink-light);
+    border-radius: 3px;
+    text-align: center;
+}
+.term-card.season-0 { background: linear-gradient(135deg, rgba(74, 106, 74, 0.2), rgba(244, 232, 208, 0.4)); }
+.term-card.season-1 { background: linear-gradient(135deg, rgba(184, 137, 58, 0.2), rgba(244, 232, 208, 0.4)); }
+.term-card.season-2 { background: linear-gradient(135deg, rgba(184, 137, 58, 0.4), rgba(244, 232, 208, 0.4)); }
+.term-card.season-3 { background: linear-gradient(135deg, rgba(139, 44, 26, 0.2), rgba(244, 232, 208, 0.4)); }
+.term-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.term-effect { font-size: 10px; color: var(--ink-light); font-family: monospace; }
+
+/* 户部详细账目 */
+.hufu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.hufu-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 12px;
+}
+.hufu-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--accent-red);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+}
+.hufu-progress {
+    height: 8px;
+    background: rgba(42, 31, 21, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+.hufu-fill {
+    height: 100%;
+    background: var(--accent-gold);
+}
+.hufu-fill.bad { background: var(--accent-red); }
+.hufu-fill.jade { background: var(--accent-jade); }
+.hufu-value {
+    font-family: monospace;
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 600;
+    text-align: right;
+}
+
+.canal-grid {
+    display: grid;
+    grid-template-columns: 1fr 30px 1fr 30px 1fr;
+    gap: 4px;
+    align-items: center;
+}
+.canal-stage {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+}
+.canal-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 13px;
+    color: var(--accent-red);
+    margin-bottom: 6px;
+}
+.canal-progress {
+    height: 6px;
+    background: rgba(42, 31, 21, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+.canal-fill { height: 100%; background: var(--accent-gold); }
+.canal-fill.jade { background: var(--accent-jade); }
+.canal-val { font-family: monospace; font-size: 11px; color: var(--ink); }
+.canal-arrow {
+    text-align: center;
+    color: var(--accent-red);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* 战役类型 */
+.battle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+}
+.battle-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+}
+.battle-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+}
+.battle-from { font-size: 11px; color: var(--ink-light); margin-bottom: 4px; }
+.battle-power {
+    font-size: 10px;
+    color: var(--ink);
+    font-family: monospace;
+}
+
+/* 进度日志 */
+#campaign-news {
+    max-height: 250px;
+    overflow-y: auto;
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 12px;
+    color: var(--ink);
+}
+
+/* ===== v3.1 新增 ===== */
+
+/* 物价 */
+.price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+}
+.price-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+}
+.price-name { font-size: 12px; color: var(--ink-light); margin-bottom: 4px; }
+.price-value { font-family: monospace; font-size: 16px; color: var(--ink); font-weight: 600; }
+.price-trend { font-size: 11px; margin-top: 4px; }
+.price-trend.good { color: #4a6a4a; }
+.price-trend.bad { color: #8b2c1a; }
+
+/* 御史 */
+.censor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.censor-card {
+    background: rgba(74, 106, 74, 0.1);
+    border: 1px solid var(--accent-jade);
+    border-radius: 4px;
+    padding: 10px;
+}
+.censor-name { font-size: 14px; color: var(--ink); font-weight: 600; }
+.censor-power { font-size: 11px; color: var(--ink-light); }
+.censor-range { font-size: 11px; color: var(--ink-light); margin-bottom: 6px; }
+.censor-loyalty {
+    display: grid;
+    grid-template-columns: 30px 1fr 40px;
+    gap: 4px;
+    align-items: center;
+    font-size: 11px;
+}
+.censor-bar { height: 4px; background: rgba(42, 31, 21, 0.3); border-radius: 2px; overflow: hidden; }
+.censor-fill { height: 100%; background: var(--accent-jade); }
+
+.censor-event {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+.censor-event-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+}
+.censor-event-content { font-size: 12px; color: var(--ink-light); margin-bottom: 6px; }
+.censor-event-options { display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* 厂卫 */
+.secret-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+}
+.secret-card {
+    background: rgba(42, 31, 21, 0.4);
+    border: 1px solid var(--accent-red);
+    border-radius: 4px;
+    padding: 12px;
+}
+.secret-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 18px;
+    color: var(--accent-red);
+    letter-spacing: 4px;
+    margin-bottom: 4px;
+}
+.secret-chief { font-size: 11px; color: var(--ink-light); margin-bottom: 8px; }
+.secret-power-bar, .secret-loyalty {
+    display: grid;
+    grid-template-columns: 30px 1fr 30px;
+    gap: 4px;
+    align-items: center;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+.secret-fill { height: 6px; background: var(--accent-red); border-radius: 3px; }
+.secret-fill.jade { background: var(--accent-jade); }
+.secret-info { font-size: 10px; color: var(--ink-light); margin: 6px 0; }
+.secret-actions { display: flex; gap: 4px; }
+.secret-btn {
+    flex: 1;
+    padding: 4px;
+    background: rgba(139, 44, 26, 0.2);
+    border: 1px solid var(--accent-red);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--ink);
+    border-radius: 3px;
+}
+.secret-btn:hover { background: var(--accent-red); color: var(--paper); }
+
+/* 藩王 */
+.prince-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+}
+.prince-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 12px;
+}
+.prince-card.dangerous { border-left: 4px solid var(--accent-red); }
+.prince-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 16px;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+}
+.prince-rank { font-size: 11px; color: var(--ink-light); margin-bottom: 8px; }
+.prince-bars { display: grid; gap: 4px; margin-bottom: 8px; }
+.prince-stat {
+    display: grid;
+    grid-template-columns: 30px 1fr 30px;
+    gap: 4px;
+    align-items: center;
+    font-size: 11px;
+}
+.prince-bar { height: 4px; background: rgba(42, 31, 21, 0.3); border-radius: 2px; overflow: hidden; }
+.prince-fill { height: 100%; }
+.prince-fill.jade { background: var(--accent-jade); }
+.prince-fill.gold { background: var(--accent-gold); }
+.prince-fill.bad { background: var(--accent-red); }
+.prince-traits {
+    font-size: 11px;
+    color: var(--ink-light);
+    background: rgba(184, 137, 58, 0.1);
+    padding: 4px 8px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    text-align: center;
+}
+.prince-actions { display: flex; gap: 4px; }
+
+/* 选官 */
+.selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+}
+.selection-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+}
+.selection-method {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 16px;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+}
+.selection-desc { font-size: 12px; color: var(--ink); margin-bottom: 4px; }
+.selection-merit { font-size: 11px; color: var(--ink-light); margin-bottom: 4px; }
+.selection-effect {
+    font-size: 11px;
+    color: var(--ink);
+    font-family: monospace;
+    padding: 4px 6px;
+    background: rgba(74, 106, 74, 0.15);
+    border-radius: 3px;
+}
+
+/* 朝贡 */
+.tribute-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 6px;
+    margin-bottom: 16px;
+}
+.tribute-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+}
+.tribute-name { font-size: 12px; color: var(--ink); font-weight: 600; }
+.tribute-flow { font-size: 10px; color: var(--accent-red); margin: 2px 0; }
+.tribute-vol { font-size: 10px; color: var(--ink-light); font-family: monospace; }
+
+.tribute-routes { display: grid; gap: 8px; }
+.tribute-route {
+    display: grid;
+    grid-template-columns: 120px 1fr 40px;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: rgba(244, 232, 208, 0.3);
+    border-radius: 3px;
+}
+.route-name { color: var(--ink); }
+.route-bar { height: 6px; background: rgba(42, 31, 21, 0.3); border-radius: 3px; overflow: hidden; }
+.route-fill { height: 100%; background: var(--accent-gold); }
+
+/* 灾荒 */
+.warning-banner {
+    padding: 16px;
+    border: 2px solid var(--accent-gold);
+    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(184, 137, 58, 0.1), rgba(244, 232, 208, 0.4));
+    margin-bottom: 12px;
+    text-align: center;
+}
+.warning-banner.danger {
+    border-color: var(--accent-red);
+    background: linear-gradient(135deg, rgba(139, 44, 26, 0.2), rgba(244, 232, 208, 0.4));
+    animation: pulse-critical 1.5s infinite;
+}
+.warning-level {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 32px;
+    color: var(--accent-red);
+    margin-bottom: 8px;
+    letter-spacing: 8px;
+}
+.warning-text { font-size: 13px; color: var(--ink); }
+.famine-factors { display: grid; gap: 6px; margin-bottom: 12px; }
+.factor {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: rgba(244, 232, 208, 0.3);
+    border-radius: 3px;
+}
+.factor-bar { height: 6px; background: rgba(42, 31, 21, 0.3); border-radius: 3px; overflow: hidden; }
+.factor-fill { height: 100%; background: var(--accent-gold); }
+.factor-fill.jade { background: var(--accent-jade); }
+.relief-actions {
+    background: rgba(74, 106, 74, 0.1);
+    border: 1px solid var(--accent-jade);
+    border-radius: 4px;
+    padding: 10px;
+}
+.relief-actions h4 { margin-bottom: 8px; color: var(--ink); }
+
+/* 科技史 */
+.tech-history { position: relative; padding: 12px 0; }
+.tech-history::before {
+    content: '';
+    position: absolute;
+    left: 60px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--ink-light);
+}
+.tech-history-item {
+    display: grid;
+    grid-template-columns: 60px 20px 1fr;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 4px;
+}
+.tech-history-item .year {
+    font-family: monospace;
+    color: var(--accent-red);
+    font-size: 14px;
+    text-align: right;
+}
+.tech-history-item .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    border: 2px solid var(--ink);
+    margin-left: 4px;
+    z-index: 1;
+}
+.tech-history-item .name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+}
+.tech-history-item .desc { color: var(--ink-light); font-size: 11px; }
+
+/* 节气祭祀 */
+.ritual-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px;
+}
+.ritual-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink);
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    letter-spacing: 2px;
+}
+
+/* 皇帝养成 */
+.emperor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+}
+.emperor-card {
+    background: linear-gradient(135deg, rgba(184, 137, 58, 0.15), rgba(244, 232, 208, 0.3));
+    border: 1px solid var(--accent-gold);
+    border-radius: 4px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.emperor-card:hover {
+    background: var(--accent-gold);
+    color: var(--paper);
+    transform: translateY(-2px);
+}
+.emperor-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 28px;
+    color: var(--accent-red);
+    letter-spacing: 8px;
+    margin-bottom: 4px;
+}
+.emperor-card:hover .emperor-name { color: var(--paper); }
+.emperor-desc { font-size: 12px; color: var(--ink-light); margin-bottom: 6px; }
+.emperor-card:hover .emperor-desc { color: var(--paper); opacity: 0.9; }
+.emperor-effect { font-size: 11px; color: var(--ink); font-family: monospace; }
+.emperor-card:hover .emperor-effect { color: var(--paper); }
+
+/* 宫女太监 */
+.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+}
+.staff-card {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+}
+.staff-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+}
+.staff-rank { font-size: 11px; color: var(--ink-light); margin-bottom: 8px; }
+.staff-stats { display: grid; gap: 4px; }
+.staff-stat {
+    display: grid;
+    grid-template-columns: 30px 1fr 30px;
+    gap: 4px;
+    align-items: center;
+    font-size: 11px;
+}
+.staff-bar { height: 4px; background: rgba(42, 31, 21, 0.3); border-radius: 2px; overflow: hidden; }
+.staff-fill { height: 100%; }
+.staff-fill.jade { background: var(--accent-jade); }
+
+/* v3.1 奏折选项特殊 - 留中 */
+.memorial-option-hold {
+    background: rgba(90, 74, 58, 0.1) !important;
+    border-left-color: var(--ink-light) !important;
+    opacity: 0.7;
+}
+.memorial-seal-hold {
+    background: var(--ink-light) !important;
+}
+
+/* ===== v3.2 分享系统 ===== */
+
+.share-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.share-card {
+    background: linear-gradient(135deg, rgba(184, 137, 58, 0.2), rgba(244, 232, 208, 0.5));
+    border: 2px double var(--accent-gold);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+    text-align: center;
+    position: relative;
+}
+
+.share-card-header { margin-bottom: 8px; }
+.share-card-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 24px;
+    color: var(--accent-red);
+    letter-spacing: 4px;
+    margin-bottom: 4px;
+}
+.share-card-year {
+    font-size: 12px;
+    color: var(--ink-light);
+    letter-spacing: 2px;
+}
+
+.share-card-rating {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 48px;
+    color: var(--accent-red);
+    letter-spacing: 12px;
+    margin: 12px 0;
+    text-shadow: 2px 2px 0 var(--accent-gold);
+}
+
+.share-card-score {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+}
+
+.share-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+    background: rgba(244, 232, 208, 0.4);
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.share-stat {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+}
+.share-stat > span:first-child { color: var(--ink-light); }
+.share-stat > span:last-child {
+    color: var(--ink);
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.share-card-decisions {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin: 4px 0;
+}
+
+.share-card-factions {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.share-faction {
+    text-align: center;
+    padding: 4px;
+    background: rgba(244, 232, 208, 0.5);
+    border-radius: 3px;
+}
+.share-faction-name { font-size: 10px; }
+.share-faction-value { font-size: 14px; font-weight: 700; font-family: monospace; }
+
+.share-code-box {
+    background: rgba(42, 31, 21, 0.4);
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+.share-code-box textarea {
+    width: 100%;
+    background: rgba(244, 232, 208, 0.8);
+    border: 1px solid var(--ink-light);
+    border-radius: 3px;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--ink);
+    resize: none;
+    word-break: break-all;
+}
+.share-code-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.import-box {
+    background: rgba(74, 106, 74, 0.1);
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid var(--accent-jade);
+}
+.import-box textarea {
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--ink-light);
+    border-radius: 3px;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--ink);
+    resize: vertical;
+}
+.import-actions { margin-top: 8px; }
+.import-success h4 { color: var(--accent-jade); margin-bottom: 8px; }
+
+/* 排行榜 */
+.leaderboard { display: grid; gap: 4px; }
+.leaderboard-item {
+    display: grid;
+    grid-template-columns: 40px 1fr 80px 60px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+}
+.leaderboard-item.me {
+    background: linear-gradient(90deg, rgba(184, 137, 58, 0.2), rgba(244, 232, 208, 0.4));
+    border-color: var(--accent-gold);
+}
+.rank-num {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 20px;
+    color: var(--accent-red);
+    text-align: center;
+}
+.rank-name { font-size: 13px; color: var(--ink); font-weight: 600; }
+.rank-era { font-size: 11px; color: var(--ink-light); }
+.rank-rating { font-family: 'Ma Shan Zheng', 'KaiTi', serif; color: var(--accent-red); text-align: center; }
+.rank-score {
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: right;
+}
+
+/* 联机状态 */
+.online-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.online-status {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 10px;
+}
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--ink);
+    border-bottom: 1px dashed var(--ink-light);
+}
+.status-item:last-child { border-bottom: none; }
+.status-active { color: var(--accent-jade); font-weight: 600; }
+.status-inactive { color: var(--ink-light); }
+
+/* 朝代对比 */
+.compare-header {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.compare-col {
+    background: rgba(244, 232, 208, 0.3);
+    border: 1px solid var(--ink-light);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+}
+.compare-name {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 14px;
+    color: var(--accent-red);
+    margin-bottom: 6px;
+    letter-spacing: 2px;
+}
+.compare-rating {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 32px;
+    color: var(--ink);
+    margin-bottom: 4px;
+}
+.compare-score {
+    font-family: monospace;
+    font-size: 16px;
+    color: var(--accent-red);
+    margin-bottom: 8px;
+}
+.compare-stats {
+    font-size: 11px;
+    color: var(--ink);
+    line-height: 1.8;
+}
+
+.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(244, 232, 208, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.compare-table th, .compare-table td {
+    padding: 8px 12px;
+    text-align: center;
+    border: 1px solid var(--ink-light);
+    font-size: 12px;
+}
+.compare-table th {
+    background: rgba(184, 137, 58, 0.2);
+    color: var(--ink);
+    font-weight: 700;
+}
+.compare-table td.good { color: #4a6a4a; }
+.compare-table td.bad { color: #8b2c1a; }
+
+/* ============================================================
+   批1 追加样式（模块A 响应式 / 模块B 音效设置 / 模块C 岁末大计）
+   只追加末尾，不重排既有规则；新规则以级联覆盖旧断点
+   ============================================================ */
+
+/* ---------- 模块B：音效设置弹窗 ---------- */
+.sfx-modal {
+    position: fixed; inset: 0; z-index: 210;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(10, 8, 6, 0.8);
+    padding: 16px;
+}
+.sfx-modal.active { display: flex; }
+.sfx-paper {
+    width: min(360px, 92%);
+    background: var(--paper); color: var(--ink);
+    border: var(--border-double); border-radius: 4px;
+    padding: 18px 20px; box-shadow: var(--shadow-paper);
+}
+.sfx-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    color: var(--accent-red); text-align: center;
+    letter-spacing: 6px; font-size: 20px; margin-bottom: 12px;
+}
+.sfx-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 10px 4px;
+    border-bottom: 1px dashed var(--ink-light);
+}
+.sfx-label { font-size: 14px; letter-spacing: 2px; }
+.sfx-toggle {
+    min-width: 64px; min-height: 44px;
+    background: var(--accent-jade); color: var(--paper);
+    border: var(--border-single); font-family: inherit; font-size: 15px;
+    cursor: pointer; border-radius: 2px; letter-spacing: 2px;
+}
+.sfx-toggle.off { background: var(--ink-light); }
+.sfx-volume { flex: 1; accent-color: var(--accent-red); min-height: 44px; }
+.sfx-hint { font-size: 11px; color: var(--ink-light); margin: 10px 0; text-align: center; }
+.sfx-close {
+    width: 100%; min-height: 44px;
+    background: var(--accent-red); color: var(--paper);
+    border: var(--border-single); font-family: inherit;
+    font-size: 15px; letter-spacing: 6px; cursor: pointer; border-radius: 2px;
+}
+.sfx-close:hover { background: var(--accent-red-light); }
+
+/* ---------- 模块C：岁末大计面板 ---------- */
+.yearend-modal {
+    position: fixed; inset: 0; z-index: 200;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(10, 8, 6, 0.86);
+    padding: 16px;
+}
+.yearend-modal.active { display: flex; }
+.yearend-paper {
+    width: min(760px, 100%);
+    max-height: 92vh; overflow-y: auto;
+    background: var(--paper); color: var(--ink);
+    border: var(--border-double); border-radius: 4px;
+    padding: 20px 22px; box-shadow: var(--shadow-paper);
+    position: relative;
+}
+.ye-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid var(--accent-red);
+    padding-bottom: 8px; margin-bottom: 10px;
+}
+.ye-era {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 20px; color: var(--accent-red); letter-spacing: 3px;
+}
+.ye-close {
+    background: transparent; color: var(--ink-light);
+    border: 1px solid var(--ink-light); border-radius: 2px;
+    font-family: inherit; font-size: 12px; letter-spacing: 2px;
+    padding: 8px 14px; cursor: pointer; min-height: 36px;
+}
+.ye-close:hover { color: var(--accent-red); border-color: var(--accent-red); }
+.ye-steps-bar { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.ye-step-dot {
+    font-size: 12px; padding: 4px 10px;
+    border: 1px solid var(--ink-light); border-radius: 2px;
+    color: var(--ink-light); opacity: 0.6; letter-spacing: 1px;
+}
+.ye-step-dot.now {
+    background: var(--accent-red); color: var(--paper);
+    border-color: var(--accent-red); opacity: 1;
+}
+.ye-step-dot.done {
+    background: var(--accent-gold); color: var(--paper);
+    border-color: var(--accent-gold); opacity: 0.9;
+}
+.ye-body { min-height: 220px; }
+.ye-quote {
+    font-size: 12px; color: var(--ink-light); font-style: italic;
+    margin-bottom: 10px; padding: 6px 8px;
+    background: rgba(184, 137, 58, 0.08);
+    border-left: 3px solid var(--accent-gold);
+}
+.ye-section-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    color: var(--accent-red); margin: 12px 0 6px; letter-spacing: 3px;
+    font-size: 16px;
+}
+.ye-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+.ye-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 10px; background: rgba(244, 232, 208, 0.35);
+    border: 1px solid var(--ink-light); border-radius: 3px; font-size: 13px;
+}
+.ye-row-name { letter-spacing: 1px; }
+.ye-row-val { font-weight: 700; font-size: 15px; }
+.ye-inc { color: var(--accent-jade); }
+.ye-exp { color: var(--accent-red); }
+.ye-sumline {
+    margin-top: 12px; padding: 8px 10px;
+    background: rgba(139, 44, 26, 0.08);
+    border: 1px dashed var(--accent-red);
+    font-size: 13px; text-align: center;
+}
+.ye-note { margin-top: 8px; font-size: 11px; color: var(--ink-light); }
+.ye-footer { margin-top: 14px; display: flex; justify-content: center; }
+.ye-btn {
+    background: var(--accent-red); color: var(--paper);
+    border: var(--border-single); padding: 12px 28px;
+    font-size: 15px; letter-spacing: 4px; cursor: pointer;
+    font-family: inherit; border-radius: 2px; min-height: 44px;
+}
+.ye-btn:hover { background: var(--accent-red-light); }
+.ye-btn-seal { background: var(--accent-gold); border-color: var(--ink); }
+.ye-btn-seal:hover { background: var(--accent-gold); filter: brightness(1.1); }
+
+/* 派系行（第二步） */
+.ye-faction-row { flex-direction: column; align-items: stretch; gap: 4px; }
+.ye-faction-main { display: flex; justify-content: space-between; align-items: baseline; }
+.ye-faction-org { font-size: 11px; color: var(--ink-light); }
+.ye-faction-num { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.ye-faction-before { color: var(--ink-light); }
+.ye-arrow { color: var(--accent-gold); }
+.ye-faction-after { font-weight: 700; }
+.ye-faction-delta { font-weight: 700; margin-left: 6px; }
+.ye-faction-gap { font-size: 11px; color: var(--ink-light); }
+.ye-warn { color: var(--accent-red); font-weight: 700; margin-left: 6px; }
+
+/* 稳定度（第三步） */
+.ye-stability-box {
+    text-align: center; padding: 12px;
+    background: rgba(184, 137, 58, 0.08);
+    border: 1px solid var(--accent-gold); border-radius: 4px;
+    margin-bottom: 10px;
+}
+.ye-stability-main {
+    font-size: 22px; display: flex; justify-content: center;
+    gap: 10px; align-items: center;
+}
+.ye-stability-before { color: var(--ink-light); }
+.ye-stability-after {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 30px; color: var(--accent-red);
+}
+.ye-stability-level { margin-top: 6px; font-size: 14px; color: var(--ink); letter-spacing: 2px; }
+.ye-reason-row {
+    font-size: 12px; padding: 5px 8px;
+    border-bottom: 1px dashed var(--ink-light); color: var(--ink);
+}
+.ye-reason-time { color: var(--accent-red); font-weight: 700; margin-right: 8px; }
+
+/* 大事记（第四步） */
+.ye-chronicle-item {
+    display: flex; gap: 10px; padding: 8px;
+    border-bottom: 1px dashed var(--ink-light);
+}
+.ye-chronicle-time {
+    flex: 0 0 76px; font-size: 12px;
+    color: var(--accent-gold); padding-top: 2px;
+}
+.ye-chronicle-title { font-size: 14px; font-weight: 700; }
+.ye-chronicle-decision { font-size: 12px; color: var(--ink-light); margin-top: 2px; }
+
+/* 总评 + 盖章（第五步） */
+.ye-verdict-box {
+    text-align: center; padding: 16px 12px;
+    background: rgba(184, 137, 58, 0.06);
+    border: 1px solid var(--accent-gold); border-radius: 4px;
+}
+.ye-verdict-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 20px; color: var(--accent-red);
+    letter-spacing: 6px; margin-bottom: 10px;
+}
+.ye-verdict-text { font-size: 14px; line-height: 2; color: var(--ink); text-align: left; }
+.ye-seal-stage {
+    min-height: 130px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin-top: 14px; position: relative;
+}
+.ye-seal-hint { font-size: 13px; color: var(--ink-light); letter-spacing: 2px; }
+.ye-seal-stamp {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 40px; letter-spacing: 8px;
+    color: var(--accent-red);
+    border: 4px solid var(--accent-red);
+    outline: 2px solid rgba(139, 44, 26, 0.35); outline-offset: 4px;
+    padding: 8px 16px 8px 24px;
+    border-radius: 6px;
+    mix-blend-mode: multiply;
+    animation: ye-seal-drop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+}
+@keyframes ye-seal-drop {
+    0%   { transform: scale(3) rotate(-14deg); opacity: 0; }
+    60%  { transform: scale(0.92) rotate(2deg); opacity: 1; }
+    80%  { transform: scale(1.06) rotate(-1deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.ye-seal-info { margin-top: 12px; font-size: 11px; color: var(--ink-light); }
+.ye-shake { animation: ye-paper-shake 0.45s ease; }
+@keyframes ye-paper-shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-4px, 2px); }
+    40% { transform: translate(4px, -2px); }
+    60% { transform: translate(-3px, -1px); }
+    80% { transform: translate(3px, 1px); }
+}
+
+/* 「岁」tab 摘要卡 */
+.ye-tab-card { text-align: center; padding: 24px 16px; }
+.ye-tab-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 22px; color: var(--accent-red);
+    letter-spacing: 6px; margin-bottom: 10px;
+}
+.ye-tab-quote { font-size: 12px; color: var(--ink-light); margin: 8px 0; font-style: italic; }
+.ye-tab-sub { font-size: 13px; color: var(--ink); margin: 6px 0; line-height: 1.8; }
+.ye-tab-card .ye-btn { margin-top: 12px; }
+
+/* ---------- 模块A：移动端导航（默认隐藏，<768px 启用） ---------- */
+.mobile-tabbar {
+    display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 120;
+    background: rgba(34, 26, 18, 0.96);
+    border-top: 2px solid var(--accent-gold);
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    justify-content: space-around;
+}
+.mobile-tab {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 56px; color: var(--paper-darker);
+    font-size: 11px; cursor: pointer; gap: 2px;
+    border-radius: 4px;
+}
+.mobile-tab .mt-icon {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 20px; color: var(--accent-gold);
+}
+.mobile-tab.active { color: var(--accent-gold); background: rgba(184, 137, 58, 0.14); }
+.mobile-next-btn {
+    display: none; position: fixed;
+    right: 14px; bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 121;
+    width: 68px; height: 68px; border-radius: 50%;
+    background: var(--accent-red); color: var(--paper);
+    border: 3px double var(--accent-gold);
+    font-family: inherit; font-size: 13px; letter-spacing: 1px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    cursor: pointer; align-items: center; justify-content: center;
+    padding: 0;
+}
+.mobile-next-btn:active { transform: scale(0.94); }
+
+/* ---------- 模块A：断点方案 ---------- */
+
+/* ≥1100px：维持三栏（级联覆盖旧 1200px 断点在 1100-1200 的单列化） */
+@media (min-width: 1100px) {
+    .game-container { grid-template-columns: 80px 1fr; }
+    .main-content { grid-template-columns: 240px 1fr 240px; }
+    .left-panel, .right-panel { max-height: calc(100vh - 130px); }
+}
+
+/* 768-1099 竖屏：两栏（资储+国事），右栏信息收纳为顶部折叠条 */
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
+    .game-container { grid-template-columns: 1fr; }
+    .main-content {
+        grid-template-columns: 220px 1fr;
+        grid-template-rows: auto 1fr;
+        min-height: auto;
+    }
+    .main-content > .right-panel {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        max-height: 175px;
+        overflow-y: auto;
+        padding: 8px 12px;
+    }
+    .main-content > .right-panel .panel-title { margin-top: 6px; font-size: 13px; }
+    .main-content > .left-panel { grid-row: 2; grid-column: 1; max-height: none; }
+    .main-content > .center-panel { grid-row: 2; grid-column: 2; max-height: none; }
+}
+
+/* 768-1099 横屏（平板横持）：三栏紧凑版 */
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: landscape) {
+    .game-container { grid-template-columns: 60px 1fr; }
+    .main-content { grid-template-columns: 180px 1fr 180px; }
+    .left-panel, .right-panel { max-height: calc(100vh - 120px); }
+}
+
+/* <768px：单栏 + 底部Tab导航，聚焦"国事待理" */
+@media (max-width: 767px) {
+    .game-container {
+        display: flex; flex-direction: column;
+        padding-bottom: calc(150px + env(safe-area-inset-bottom));
+        min-height: 100vh;
+    }
+    .main-content { display: flex; flex-direction: column; min-height: auto; }
+
+    /* 面板显隐：默认聚焦国事（中央），资储/天象按 Tab 切换 */
+    .left-panel, .right-panel { display: none !important; max-height: none; }
+    body.mview-left .left-panel { display: block !important; }
+    body.mview-right .right-panel { display: block !important; }
+    .center-panel {
+        display: block; max-height: none;
+        padding: 16px 12px; font-size: 15px; order: 2;
+    }
+    body.mview-left .center-panel, body.mview-right .center-panel { display: none; }
+
+    /* 朝堂视图：系统菜单变顶部横滑条 */
+    .system-menu { display: none; }
+    body.mview-menu .system-menu {
+        display: block; position: sticky; top: 0; z-index: 60;
+        background: var(--bg-dark);
+        padding: 8px 8px 4px;
+        border-bottom: 1px solid var(--accent-gold);
+        order: 1;
+    }
+    body.mview-menu .menu-title { display: none; }
+    body.mview-menu .menu-tabs {
+        display: flex; overflow-x: auto; gap: 6px;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+    body.mview-menu .menu-tab {
+        flex: 0 0 auto; width: 44px; height: 44px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px;
+    }
+    /* 朝堂视图下中央面板置前 */
+    body.mview-menu .center-panel { order: 0; }
+
+    /* 底部导航启用 */
+    .mobile-tabbar { display: flex; }
+    .mobile-next-btn { display: flex; }
+
+    /* 顶栏紧凑 + 触控目标 ≥44px */
+    .dynasty-header { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
+    .era-name { font-size: 19px; letter-spacing: 2px; }
+    .time-control { gap: 8px; flex-wrap: wrap; }
+    .time-btn { min-height: 44px; padding: 8px 14px; font-size: 14px; }
+    .save-btn { min-width: 44px; min-height: 44px; font-size: 16px; }
+
+    /* 通用触控目标 */
+    .decision-option { min-height: 48px; font-size: 15px; }
+    .memorial-option { min-height: 52px; }
+    .menu-tab { min-width: 44px; min-height: 44px; }
+
+    /* 资源列表窄屏两列网格 */
+    .stat-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+    .resource-group-header { grid-column: 1 / -1; }
+
+    /* 岁末大计面板窄屏适配 */
+    .yearend-modal { padding: 8px; }
+    .yearend-paper { padding: 14px 12px; max-height: 94vh; }
+    .ye-rows { grid-template-columns: 1fr; }
+    .ye-seal-stamp { font-size: 32px; }
+    .ye-btn { width: 100%; max-width: 320px; }
+}
+
+/* ============================================
+   《大明国策》批2 模块A：舆图（末尾追加，不动上游）
+   ============================================ */
+.map-legend {
+    display: flex; flex-wrap: wrap; gap: 10px 16px;
+    margin: 8px 0 12px; font-size: 12px; color: #a89984;
+    align-items: center;
+}
+.map-legend-dot {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; margin-right: 4px; vertical-align: middle;
+}
+.map-green-bg { background: #4a9e5c; }
+.map-yellow-bg { background: #d4a017; }
+.map-red-bg { background: #c0392b; }
+.map-legend-line {
+    display: inline-block; width: 16px; height: 10px;
+    border: 2px solid #b08d57; margin-right: 4px; vertical-align: middle;
+}
+.map-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 6px; margin-bottom: 10px;
+}
+.map-cell {
+    position: relative;
+    background: rgba(40, 34, 26, 0.7);
+    border: 1px solid rgba(139, 115, 85, 0.4);
+    border-radius: 6px;
+    padding: 10px 4px 10px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    user-select: none;
+    min-height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 4px;
+}
+.map-cell:hover { border-color: #d4a017; background: rgba(60, 50, 36, 0.8); }
+/* 九边重镇：金色描边标识 */
+.map-cell-border { border: 2px solid #b08d57; box-shadow: inset 0 0 6px rgba(176, 141, 87, 0.25); }
+/* 状态点 */
+.map-cell-dot {
+    position: absolute; top: 5px; left: 5px;
+    width: 8px; height: 8px; border-radius: 50%;
+}
+.map-green .map-cell-dot { background: #4a9e5c; }
+.map-yellow .map-cell-dot { background: #d4a017; box-shadow: 0 0 5px rgba(212, 160, 23, 0.6); }
+.map-red .map-cell-dot { background: #c0392b; box-shadow: 0 0 6px rgba(192, 57, 43, 0.7); animation: map-pulse 1.6s infinite; }
+@keyframes map-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}
+.map-cell-name { font-size: 14px; color: #e8d9b8; letter-spacing: 1px; }
+.map-yellow .map-cell-name { color: #ecd693; }
+.map-red .map-cell-name { color: #e8a99f; }
+.map-note { font-size: 11px; color: #8a7d6a; margin-top: 8px; }
+
+/* 批2：舆图地区况卡浮层 */
+.map-modal, .talk-modal {
+    display: none; position: fixed; inset: 0; z-index: 2200;
+    background: rgba(10, 8, 5, 0.78);
+    align-items: center; justify-content: center;
+}
+.map-modal.active, .talk-modal.active { display: flex; }
+.map-paper {
+    background: linear-gradient(160deg, #2a2118 0%, #1e1812 100%);
+    border: 2px solid #8b7355; border-radius: 10px;
+    padding: 18px; width: min(420px, 92vw);
+    max-height: 86vh; overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+.map-cell-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.map-cell-name { font-size: 22px; color: #e8d9b8; letter-spacing: 2px; font-weight: bold; flex: 1; }
+.map-cell-tag {
+    font-size: 11px; color: #d4a017; border: 1px solid #b08d57;
+    border-radius: 4px; padding: 2px 8px;
+}
+.map-cell-close, .talk-close {
+    background: #3a2f22; color: #e8d9b8;
+    border: 1px solid #8b7355; border-radius: 6px;
+    padding: 6px 14px; cursor: pointer; font-size: 13px;
+}
+.map-cell-close:hover, .talk-close:hover { background: #4a3d2c; }
+.map-cell-status { font-size: 14px; margin-bottom: 8px; }
+.map-green-text { color: #6fc482; }
+.map-yellow-text { color: #e0b13e; }
+.map-red-text { color: #e06c5a; }
+.map-cell-desc { font-size: 13px; color: #b8a88c; line-height: 1.7; margin-bottom: 12px; }
+.map-cell-cool { font-size: 12px; color: #8a7d6a; margin-bottom: 10px; }
+.map-cell-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.map-act-btn, .talk-act-btn {
+    background: linear-gradient(180deg, #4a3a26 0%, #3a2d1e 100%);
+    color: #e8d9b8; border: 1px solid #b08d57; border-radius: 6px;
+    padding: 9px 16px; cursor: pointer; font-size: 13px; letter-spacing: 1px;
+    transition: transform 0.1s, background 0.2s;
+}
+.map-act-btn:hover:not(:disabled), .talk-act-btn:hover:not(:disabled) { background: #5a4830; transform: translateY(-1px); }
+.map-act-btn:disabled, .talk-act-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.map-act-relief { border-color: #a05c48; }
+
+/* 批2：大臣召见浮层 */
+.talk-paper {
+    background: linear-gradient(160deg, #2a2118 0%, #1e1812 100%);
+    border: 2px solid #8b7355; border-radius: 10px;
+    padding: 18px; width: min(480px, 92vw);
+    max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+.talk-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.talk-head-id { flex: 1; }
+.talk-name { font-size: 22px; color: #e8d9b8; letter-spacing: 2px; font-weight: bold; }
+.talk-rank { font-size: 12px; color: #a89984; margin-top: 3px; }
+.talk-loyalty {
+    font-size: 14px; color: #d4a017; border: 1px solid #b08d57;
+    border-radius: 6px; padding: 4px 10px; align-self: center; white-space: nowrap;
+}
+.talk-relation {
+    font-size: 12px; color: #9a8c74; line-height: 1.6;
+    background: rgba(139, 115, 85, 0.12); border-radius: 6px;
+    padding: 8px 10px; margin-bottom: 12px;
+}
+.talk-body {
+    font-size: 14px; color: #d9c9a5; line-height: 1.8;
+    background: rgba(30, 24, 18, 0.8); border-left: 3px solid #b08d57;
+    border-radius: 0 6px 6px 0; padding: 12px 14px; margin-bottom: 10px;
+    min-height: 64px;
+}
+.talk-hint { font-size: 12px; color: #c9a44a; line-height: 1.6; margin-bottom: 12px; min-height: 18px; }
+.talk-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* 批2：舆图与召见浮层窄屏适配 */
+@media (max-width: 767px) {
+    .map-grid { gap: 4px; }
+    .map-cell { min-height: 46px; padding: 8px 2px 8px 12px; }
+    .map-cell-name { font-size: 12px; }
+    .map-paper, .talk-paper { padding: 12px; }
+    .talk-actions { grid-template-columns: 1fr; }
+    .map-cell-actions { flex-direction: column; }
+    .map-act-btn, .talk-act-btn { width: 100%; }
+}
+
+/* ============================================================
+   批3：厂卫系统 + 内帑博弈 + 辽东出征 + 结局回响（只追加，不动上文）
+   ============================================================ */
+
+/* ---- 厂卫面板（卫 tab）---- */
+.cw-wrap { padding: 14px; max-width: 780px; margin: 0 auto; }
+.cw-banner {
+  background: #2b2420; border: 1px solid #6b5a3e; border-left: 4px solid #a33333;
+  color: #d8c9a3; padding: 10px 12px; margin-bottom: 12px; font-size: 13px; line-height: 1.7;
+}
+.cw-banner b { color: #e0b96a; }
+.cw-inst-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.cw-inst {
+  background: rgba(26, 20, 14, 0.55); border: 1px solid #55462e; padding: 10px;
+}
+.cw-inst-name { color: #e0b96a; font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.cw-inst-head { color: #c8b48a; font-size: 12px; margin-bottom: 6px; }
+.cw-power-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #a89a78; margin-bottom: 8px; }
+.cw-power-bar { flex: 1; height: 8px; background: #1c1610; border: 1px solid #55462e; }
+.cw-power-fill { height: 100%; background: linear-gradient(90deg, #7a5a2e, #a33333); transition: width .4s; }
+.cw-power-fill.hot { background: linear-gradient(90deg, #a33333, #d43a3a); }
+.cw-inst-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.cw-btn {
+  background: #3a2f1f; color: #e8d9b0; border: 1px solid #8a744a; padding: 5px 10px;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.cw-btn:hover { background: #4a3c26; }
+.cw-btn:disabled { opacity: .45; cursor: not-allowed; }
+.cw-btn.danger { border-color: #a33333; color: #e8b0b0; }
+.cw-btn.warn { border-color: #c9a227; color: #f0d888; }
+.cw-cooldown-note { color: #8a7a5c; font-size: 11px; margin-top: 4px; }
+.cw-spy-form, .cw-section {
+  background: rgba(26, 20, 14, 0.35); border: 1px solid #453a26; padding: 10px 12px; margin-bottom: 12px;
+}
+.cw-section-title {
+  color: #e0b96a; font-size: 14px; margin: 0 0 8px 0; padding-bottom: 4px;
+  border-bottom: 1px dashed #55462e; font-weight: bold;
+}
+.cw-select {
+  background: #1c1610; color: #e8d9b0; border: 1px solid #8a744a; padding: 5px 8px;
+  font-size: 12px; font-family: inherit; max-width: 100%;
+}
+.cw-form-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.cw-form-row label { color: #a89a78; font-size: 12px; }
+.cw-evidence-item, .cw-jail-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  border: 1px solid #55462e; background: rgba(60, 24, 24, 0.25); padding: 6px 10px; margin-bottom: 6px;
+  font-size: 12px; color: #d8c9a3; flex-wrap: wrap;
+}
+.cw-evidence-item.used { opacity: .5; }
+.cw-evidence-crime { color: #e08a8a; }
+.cw-empty { color: #7a6c4e; font-size: 12px; padding: 6px 0; }
+.cw-miner-status { color: #d8c9a3; font-size: 12px; margin-bottom: 8px; line-height: 1.7; }
+.cw-miner-status b { color: #e0b96a; }
+.cw-aid-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.cw-archives { list-style: none; margin: 0; padding: 0; max-height: 220px; overflow-y: auto; }
+.cw-archives li {
+  border-left: 2px solid #8a744a; padding: 4px 8px; margin-bottom: 4px;
+  font-size: 12px; color: #bfae87; background: rgba(26, 20, 14, 0.3);
+}
+.cw-src { color: #7a6c4e; font-size: 11px; line-height: 1.8; margin-top: 10px; }
+
+/* ---- 命将出师浮层 ---- */
+.exp-paper { max-width: 560px; width: 94%; max-height: 84vh; overflow-y: auto; }
+.exp-body { padding: 10px 14px 16px; }
+.exp-step { margin-bottom: 14px; }
+.exp-step-title { color: #e0b96a; font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+.exp-step-note { color: #8a7a5c; font-size: 11px; margin-bottom: 6px; line-height: 1.6; }
+.exp-gen-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.exp-gen {
+  border: 1px solid #55462e; background: rgba(26, 20, 14, 0.5); padding: 8px; cursor: pointer;
+  font-family: inherit; text-align: left; color: #d8c9a3; font-size: 12px; line-height: 1.6;
+}
+.exp-gen:hover { border-color: #8a744a; }
+.exp-gen.sel { border-color: #c9a227; background: rgba(90, 66, 20, 0.45); }
+.exp-gen b { color: #e0b96a; font-size: 13px; }
+.exp-gen .exp-gen-src { color: #7a6c4e; font-size: 10.5px; display: block; margin-top: 3px; }
+.exp-pay-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.exp-pay-opt {
+  background: #3a2f1f; color: #e8d9b0; border: 1px solid #8a744a; padding: 5px 10px;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.exp-pay-opt.sel { border-color: #c9a227; background: #5a4214; color: #f0d888; }
+.exp-pay-opt:disabled { opacity: .4; cursor: not-allowed; }
+.exp-factors { font-size: 11.5px; color: #a89a78; line-height: 1.8; background: rgba(26,20,14,.4); border: 1px dashed #55462e; padding: 6px 10px; }
+.exp-dispatch-row { text-align: center; margin-top: 12px; }
+.exp-dispatch-btn {
+  background: linear-gradient(180deg, #7a2a2a, #5a1f1f); color: #f0e0c0; border: 1px solid #a33333;
+  padding: 9px 26px; font-size: 14px; cursor: pointer; font-family: inherit; letter-spacing: 2px;
+}
+.exp-dispatch-btn:disabled { opacity: .4; cursor: not-allowed; }
+.map-exp-lock {
+  border: 1px solid #a33333; color: #d88; font-size: 12px; padding: 7px 10px; text-align: center;
+  background: rgba(60, 20, 20, .3); margin-top: 6px;
+}
+
+/* ---- 结局回响「身后名」---- */
+.end-legacy {
+  margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(128, 106, 60, .45);
+  text-align: left; font-size: 12.5px; color: #bfae87; line-height: 1.8;
+}
+.end-legacy .cw-legacy-title {
+  color: #e0b96a; text-align: center; letter-spacing: 6px; margin: 0 0 8px 0; font-size: 15px;
+}
+.end-legacy .cw-legacy-sec { margin-bottom: 8px; }
+.end-legacy .cw-legacy-sec b { color: #d8c9a3; }
+.end-legacy .cw-legacy-chrono { list-style: none; margin: 4px 0 0 0; padding: 0; }
+.end-legacy .cw-legacy-chrono li { border-left: 2px solid #8a744a; padding: 2px 8px; margin-bottom: 3px; }
+
+@media (max-width: 640px) {
+  .cw-inst-list { grid-template-columns: 1fr; }
+  .exp-gen-list { grid-template-columns: 1fr; }
+  .exp-paper { max-height: 88vh; }
+}
+
+/* 批3补：命将出师按钮强调样式（红警边镇入口） */
+.map-act-exp { border-color: #a33333; color: #e8b0b0; background: rgba(90, 30, 30, 0.45); font-weight: bold; }
+.map-act-exp:disabled { opacity: .4; }
+
+/* 紧急修复：edict-zone永久DOM（切tab不销毁） */
+.edict-zone { margin-bottom: 8px; }
+.edict-history { margin-top: 8px; padding: 0 4px; }
+.history-list { max-height: 180px; overflow-y: auto; }
+
+/* ============================================
+   批4：大幅扩容新增CSS
+   ============================================ */
+
+/* 早朝浮层 */
+.court-banner { text-align:center; font-size:1.1em; padding:8px; background:rgba(139,69,19,0.15); border:1px solid #8b4513; border-radius:4px; margin-bottom:8px; }
+.court-issue { border:1px solid #5a3a1a; background:rgba(90,58,26,0.08); padding:8px; margin:6px 0; border-radius:4px; }
+.court-issue.resolved { opacity:0.5; }
+.court-issue-type { display:inline-block; font-size:0.8em; padding:2px 6px; border-radius:3px; background:#5a3a1a; color:#f5e6c8; margin-right:6px; }
+.court-issue-title { margin:4px 0; font-size:1.05em; }
+.court-issue-desc { font-size:0.9em; color:#8b7355; margin:4px 0; }
+.court-opts { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+.court-opt-btn { font-size:0.85em; padding:4px 8px; }
+.court-resolved { opacity:0.4; pointer-events:none; }
+.court-item { border:1px solid #5a3a1a; padding:6px; margin:4px 0; border-radius:3px; }
+.court-item-desc { font-size:0.85em; color:#8b7355; }
+.court-item-opts { font-size:0.8em; color:#b8893a; }
+
+/* 后宫互动 */
+.harem-wrap { padding:8px; }
+.harem-banner { text-align:center; font-size:1em; padding:6px; background:rgba(139,20,60,0.12); border:1px solid #8b143c; border-radius:4px; margin-bottom:8px; }
+.harem-consort-card { border:1px solid #8b143c; padding:6px; margin:4px 0; border-radius:4px; background:rgba(139,20,60,0.05); }
+.harem-name { font-weight:bold; color:#8b143c; }
+.harem-favor { display:flex; align-items:center; gap:4px; font-size:0.85em; margin:3px 0; }
+.harem-favor-bar { flex:1; height:8px; background:#ddd; border-radius:4px; overflow:hidden; }
+.harem-favor-fill { height:100%; background:#8b143c; border-radius:4px; }
+.harem-info { font-size:0.8em; color:#8b7355; }
+.harem-actions { display:flex; flex-wrap:wrap; gap:3px; margin-top:4px; }
+.harem-act-btn { font-size:0.8em; padding:2px 6px; }
+.harem-prince { display:inline-block; padding:2px 6px; margin:2px; border:1px solid #5a3a1a; border-radius:3px; font-size:0.85em; }
+.harem-hint { font-size:0.8em; color:#a0522d; margin-top:6px; font-style:italic; }
+
+/* 外交互动 */
+.diplo-wrap { padding:8px; }
+.diplo-banner { text-align:center; font-size:1em; padding:6px; background:rgba(58,90,74,0.12); border:1px solid #4a6a4a; border-radius:4px; margin-bottom:8px; }
+.diplo-nation-card { border:1px solid #5a4a3a; padding:6px; margin:4px 0; border-radius:4px; }
+.diplo-name { font-weight:bold; font-size:1em; }
+.diplo-type { font-size:0.8em; padding:1px 4px; border-radius:2px; background:#5a4a3a; color:#f5e6c8; margin-left:6px; }
+.diplo-rel { font-size:0.85em; color:#8b7355; }
+.diplo-traits { font-size:0.8em; color:#b8893a; }
+.diplo-actions { display:flex; flex-wrap:wrap; gap:3px; margin-top:4px; }
+.diplo-act-btn { font-size:0.8em; padding:2px 6px; }
+.diplo-hint { font-size:0.8em; color:#a0522d; margin-top:6px; font-style:italic; }
+
+/* 科举 */
+.keju-banner { text-align:center; font-size:1em; padding:6px; background:rgba(0,100,0,0.1); border:1px solid #2e8b2e; border-radius:4px; margin-bottom:8px; }
+.keju-sec { margin:8px 0 4px; color:#2e8b2e; }
+.keju-examiners, .keju-subjects, .keju-btns { display:flex; flex-wrap:wrap; gap:4px; margin:4px 0; }
+.keju-cost { font-size:0.85em; color:#8b7355; margin:4px 0; }
+.keju-summary { font-size:0.9em; color:#b8893a; margin:4px 0; }
+.keju-history { font-size:0.85em; color:#8b7355; }
+
+/* 营造 */
+.yz-wrap { padding:8px; }
+.yz-banner { text-align:center; font-size:1em; padding:6px; background:rgba(139,69,19,0.12); border:1px solid #8b4513; border-radius:4px; margin-bottom:8px; }
+.yz-project-card { border:1px solid #5a3a1a; padding:6px; margin:4px 0; border-radius:4px; }
+.yz-name { margin:0 0 4px; color:#5a3a1a; }
+.yz-desc { font-size:0.9em; color:#8b7355; }
+.yz-cost { font-size:0.8em; color:#8b4513; margin:3px 0; }
+.yz-effect { font-size:0.8em; color:#2e8b2e; margin:3px 0; }
+.yz-warn { font-size:0.8em; color:#8b0000; margin:3px 0; font-style:italic; }
+.yz-src { font-size:0.75em; color:#aaa; margin-top:4px; }
+.yz-completed { font-size:0.85em; color:#8b7355; }
+
+/* 通用按钮扩展 */
+.cw-btn-warn { background:linear-gradient(135deg,#b8893a,#a0522d); color:#fff; border:1px solid #8b6914; }
+.cw-btn-warn:hover { background:linear-gradient(135deg,#a0522d,#8b4513); }
+.cw-btn-danger { background:linear-gradient(135deg,#8b2c1a,#6b1c0a); color:#fff; border:1px solid #8b2c1a; }
+.cw-btn-danger:hover { background:linear-gradient(135deg,#6b1c0a,#4b0c00); }
+
+/* 舆图扩展按钮 */
+.map-ext-btn { font-size:0.8em; padding:2px 5px; background:#5a4a3a; color:#f5e6c8; border:1px solid #8b7355; border-radius:3px; }
+.map-ext-btn:hover:not(:disabled) { background:#8b7355; }
+.map-ext-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+/* 行动栏 */
+.action-bar { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+
+/* 提示 */
+.hint { font-size:0.8em; color:#a0522d; margin-top:8px; font-style:italic; padding:4px; border:1px dashed #ddd; border-radius:3px; }
+
+/* 浮层通用 */
+.cw-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; justify-content:center; align-items:center; }
+.cw-modal.active { display:flex; }
+.cw-modal-paper { background:#f5e6c8; padding:16px; border-radius:8px; max-width:600px; max-height:85vh; overflow-y:auto; border:2px solid #5a3a1a; box-shadow:0 4px 20px rgba(0,0,0,0.3); width:90%; }
+.cw-modal-title { text-align:center; font-size:1.2em; margin-bottom:8px; color:#5a3a1a; }
+.cw-modal-body { margin:8px 0; }
+.cw-modal-close { display:block; margin:8px auto 0; }
+
+/* section标题 */
+.section-title { font-size:1em; color:#5a3a1a; margin:8px 0 4px; border-bottom:1px solid #ddd; padding-bottom:2px; }
+
+/* ===== 批5·纵深扩展样式（追加末尾） ===== */
+.auto-badge { display:inline-block; background:#5a3a1a; color:#ffe9b0; padding:2px 8px; border-radius:10px; font-size:0.8em; margin-left:8px; vertical-align:middle; }
+.junpi-open-btn { background:#7a1f1f; color:#ffe9b0; border:1px solid #5a3a1a; padding:3px 10px; border-radius:6px; cursor:pointer; margin-left:8px; }
+.junpi-open-btn:hover { background:#5a1a1a; }
+.jp-item { border:1px dashed #a07a3a; border-radius:8px; padding:8px; margin:8px 0; background:#fffdf4; }
+.jp-title { font-weight:bold; color:#5a3a1a; }
+.jp-content { font-size:0.9em; color:#6b4f2a; margin:4px 0; }
+.jp-actions { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+.jp-actions .btn { font-size:0.82em; padding:2px 6px; }
+.zj-item { padding:4px 0; color:#8a1a1a; }
+.mil-camp { display:inline-block; margin-right:10px; color:#1a3a6b; }
+.report-text .btn { margin:2px; }
+
+/* ===== 批A · 经济深改（国势冷暖/景气指数/物价操作） ===== */
+.pros-card { border: var(--border-single); background: rgba(255,255,255,0.25); padding: 8px 10px; margin-bottom: 10px; }
+.pros-line { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.pros-label { font-weight: bold; color: var(--ink); font-size: 13px; white-space: nowrap; }
+.pros-gauge { display: flex; gap: 2px; flex: 1; }
+.pros-bar { flex: 1; height: 10px; background: #cbb; border: 1px solid #a88; }
+.pros-bar.on { background: var(--accent-jade); border-color: var(--accent-jade); }
+.pros-num { font-size: 16px; font-weight: bold; color: var(--accent-red); white-space: nowrap; }
+.pros-num small { font-size: 10px; color: var(--ink-light); }
+.pros-sub { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11px; color: var(--ink-light); }
+.pros-sub b { color: var(--ink); }
+.pros-sub b.danger { color: var(--accent-red); }
+.pros-warn { margin-top: 6px; padding: 5px 8px; background: rgba(139,44,26,0.12); border: 1px solid var(--accent-red); color: var(--accent-red); font-size: 12px; }
+.mid { color: var(--accent-gold); }
+.low { color: var(--accent-red); }
+.price-card .price-trend.bad { color: var(--accent-red); }
+.price-card .price-trend.good { color: var(--accent-jade); }
+.policy-btn.danger { background: rgba(139,44,26,0.18); color: var(--accent-red); }
+
+/* ============ 批C：战棋/回合制小战（battlefield.js） ============ */
+.bf-war { background: rgba(20,24,18,0.88); border: 1px solid rgba(180,150,100,0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.bf-boardline { font-size: 0.82rem; color: var(--accent-gold); letter-spacing: 1px; margin-bottom: 8px; }
+.bf-sides { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.bf-side { font-size: 0.8rem; color: var(--text-dim); line-height: 1.6; }
+.bf-supply { font-size: 0.78rem; color: var(--accent-jade); border-top: 1px dashed rgba(180,150,100,0.2); padding-top: 8px; }
+.bf-form { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 6px 0; border-bottom: 1px dashed rgba(180,150,100,0.15); font-size: 0.8rem; }
+.bf-form-name { color: var(--accent-gold); min-width: 52px; }
+.bf-form-act { display: flex; flex-wrap: wrap; gap: 4px; }
+.bf-mini { padding: 2px 8px !important; font-size: 0.7rem !important; margin: 0 !important; }
+.bf-tactics { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.bf-tac { font-size: 0.78rem !important; padding: 8px 10px !important; }
+.bf-econ { font-size: 0.76rem; color: var(--text-dim); margin-bottom: 10px; line-height: 1.6; }
+.bf-log { margin-top: 12px; max-height: 30vh; overflow-y: auto; border-top: 1px solid rgba(180,150,100,0.2); padding-top: 8px; }
+.bf-logline { font-size: 0.74rem; color: var(--text-dim); padding: 3px 0; border-bottom: 1px dotted rgba(180,150,100,0.12); line-height: 1.5; }
+.bf-logline::first-letter { color: var(--accent-red); }
+
+/* ================================================================
+   批D：界面/立绘升级（收官 · 视觉层，追加末尾）
+   写实国风：深绛+鎏金+宣纸米；面板一国之版面；立绘SVG/舆图/急奏/开场
+   仅追加，不改写既有规则；保留 edict 永久 DOM 与响应式
+================================================================ */
+/* ---------- D1 全局视觉层次（鎏金描边/阴影/渐变，深绛+宣纸米主视觉） ---------- */
+:root {
+    --d5-shenjiang: #6e1f12;
+    --d5-gold: #d4a94f;
+    --d5-gold-dim: #b8893a;
+    --d5-paper: #f4e8d0;
+    --d5-paper-dim: #e6d4b0;
+    --d5-ink: #2a1f15;
+    --d5-border: linear-gradient(145deg, rgba(212,169,79,0.9), rgba(184,137,58,0.25));
+}
+body {
+    background:
+        radial-gradient(1200px 600px at 15% 0%, rgba(110,31,18,0.35), transparent 60%),
+        radial-gradient(1000px 700px at 90% 100%, rgba(184,137,58,0.14), transparent 55%),
+        var(--bg-dark);
+}
+/* 标题鎏金层级 */
+.panel-title {
+    position: relative;
+    padding-bottom: 10px;
+    font-family: 'Ma Shan Zheng', 'STKaiti', 'KaiTi', serif;
+    letter-spacing: 3px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.panel-title::after {
+    content: '';
+    display: block;
+    margin-top: 8px;
+    height: 2px;
+    background: var(--d5-border);
+    border-radius: 2px;
+}
+/* 国事区标题 .report-title 宋体衬线 + 竖排点缀（各系统渲染） */
+.report-title {
+    position: relative;
+    font-family: 'Ma Shan Zheng', 'STKaiti', serif;
+    letter-spacing: 4px;
+    text-shadow: 0 0 6px rgba(212,169,79,0.35);
+}
+.report-title::before {
+    content: '奏';
+    position: absolute;
+    right: -30px;
+    top: -8px;
+    font-size: 26px;
+    color: rgba(139,44,26,0.14);
+    writing-mode: vertical-rl;
+    letter-spacing: 2px;
+    pointer-events: none;
+}
+/* 各 .paper 面板统一鎏金浮雕 */
+.script-paper, .event-paper, .memorial-paper, .end-paper,
+.yearend-paper, .sfx-paper, .map-paper, .talk-paper, .cw-paper {
+    border: 1px solid rgba(212,169,79,0.45);
+    box-shadow: 0 0 30px rgba(184,137,58,0.18), inset 0 0 40px rgba(234,208,144,0.06);
+}
+
+/* ---------- D2 大臣立绘（talk-paper 内注入） ---------- */
+.talk-portrait {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 6px 0 10px;
+    padding: 8px 0 6px;
+    border-top: 1px dashed rgba(184,137,58,0.3);
+    border-bottom: 1px dashed rgba(184,137,58,0.3);
+    opacity: 0;
+}
+.talk-portrait.talk-portrait-in { animation: d5PortraitIn 0.7s ease forwards; }
+@keyframes d5PortraitIn {
+    from { opacity: 0; transform: translateY(-14px) scale(0.94); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.talk-portrait-img {
+    width: 124px;
+    height: 164px;
+    border-radius: 10px;
+    display: block;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.55));
+    border: 1px solid rgba(212,169,79,0.6);
+}
+.talk-portrait-frame {
+    position: absolute;
+    inset: 2px;
+    border: 1px solid rgba(212,169,79,0.35);
+    border-radius: 10px;
+    pointer-events: none;
+}
+.talk-portrait-label {
+    margin-top: 4px;
+    font-size: 0.7rem;
+    color: var(--d5-gold);
+    letter-spacing: 4px;
+    opacity: 0.8;
+}
+
+/* ---------- D3 舆图升级：疆域底层 + 纹章标识 + 灾异烽火 ---------- */
+.map-deco {
+    position: relative;
+    height: 78px;
+    margin: 4px 0 10px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(184,137,58,0.4);
+    background:
+        radial-gradient(60% 90% at 30% 20%, rgba(184,137,58,0.18), transparent 70%),
+        linear-gradient(160deg, #241a10, #160f0a);
+}
+/* 德齿状陆界轮廓背景（纯 CSS 三角齿锯 + 山川起伏） */
+.map-deco-terrain {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(45deg, transparent 49%, rgba(212,169,79,0.22) 50%, rgba(212,169,79,0.22) 51%, transparent 52%),
+        linear-gradient(-45deg, transparent 49%, rgba(212,169,79,0.18) 50%, rgba(212,169,79,0.18) 51%, transparent 52%),
+        linear-gradient(180deg, transparent 60%, rgba(110,31,18,0.5) 100%);
+    background-size: 42px 42px, 42px 42px, 100% 100%;
+    opacity: 0.7;
+}
+.map-deco-title {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Ma Shan Zheng', 'STKaiti', serif;
+    font-size: 1.15rem;
+    letter-spacing: 6px;
+    color: #e8d9b8;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7), 0 0 10px rgba(212,169,79,0.4);
+}
+/* 格子纹章化标识：城池/边镇 */
+.map-cell { position: relative; }
+.map-glyph {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    font-size: 15px;
+    line-height: 1;
+    opacity: 0.9;
+}
+.map-glyph.map-fort { color: #d4a94f; text-shadow: 0 0 5px rgba(212,169,79,0.6); }
+.map-glyph.map-city { color: #9fb8a0; text-shadow: 0 0 4px rgba(159,184,160,0.4); }
+/* 灾异烽火动效 */
+.map-beacon {
+    display: inline-block;
+    margin-left: 3px;
+    animation: d5Beacon 0.8s ease-in-out infinite;
+}
+@keyframes d5Beacon {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.35; transform: scale(1.25); }
+}
+
+/* ---------- D4 事件急奏锦布：卷轴边框 + 圣旨配色 + 类型图标 ---------- */
+.event-paper {
+    position: relative;
+    border: 1px solid rgba(139,44,26,0.55);
+    background:
+        radial-gradient(80% 40% at 50% 0%, rgba(139,44,26,0.12), transparent 70%),
+        var(--d5-paper);
+}
+.event-paper.event-jinbu { animation: d5Jinbu 0.6s ease; }
+@keyframes d5Jinbu {
+    from { opacity: 0.4; transform: scaleY(0.9); }
+    to   { opacity: 1; transform: scaleY(1); }
+}
+.event-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    padding: 3px 12px;
+    font-size: 0.8rem;
+    color: var(--d5-gold);
+    border: 1px solid rgba(212,169,79,0.5);
+    border-radius: 20px;
+    background: rgba(139,44,26,0.12);
+    letter-spacing: 1px;
+}
+
+/* ---------- D4 战报可视化：军力符号条 + 士气条 ---------- */
+.bf-morale-bar {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: rgba(30,24,16,0.9);
+    border: 1px solid rgba(180,150,100,0.3);
+    border-radius: 10px;
+}
+.bf-morale-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.76rem; }
+.bf-morale-label { color: var(--accent-gold); min-width: 28px; }
+.bf-morale-track { flex: 1; height: 10px; background: rgba(0,0,0,0.4); border-radius: 5px; overflow: hidden; }
+.bf-morale-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
+.bf-morale-fill.bf-morale-my { background: linear-gradient(90deg, #4a9e5c, #7fd08a); box-shadow: 0 0 6px rgba(74,158,92,0.6); }
+.bf-morale-fill.bf-morale-en { background: linear-gradient(90deg, #c0392b, #e06c5a); box-shadow: 0 0 6px rgba(192,57,43,0.5); }
+.bf-morale-num { color: #e8d9b8; min-width: 26px; text-align: right; }
+.bf-forces { display: flex; gap: 16px; margin-top: 6px; }
+.bf-force-row { display: flex; align-items: center; gap: 6px; font-size: 0.74rem; color: var(--text-dim); }
+.bf-force-side { color: var(--accent-gold); }
+.bf-force-chips { display: flex; gap: 2px; }
+.bf-force-chip { width: 7px; height: 14px; border-radius: 2px; display: inline-block; }
+.bf-force-chip.my { background: #4a9e5c; }
+.bf-force-chip.en { background: #c0392b; }
+.bf-force-count { color: #e8d9b8; }
+
+/* ---------- D4 结局山河志卷轴收束 ---------- */
+.end-paper.end-scroll-in { animation: d5EndScroll 0.7s ease; }
+@keyframes d5EndScroll {
+    from { opacity: 0; transform: scaleY(0.82) translateY(12px); }
+    to   { opacity: 1; transform: scaleY(1) translateY(0); }
+}
+.mainline-ending { position: relative; border-left: 2px solid rgba(212,169,79,0.6); }
+.mainline-ending.ml-scroll-in { animation: d5ScrollIn 0.7s ease; }
+@keyframes d5ScrollIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- D5 剧本选择：时代色 + 点题诗 ---------- */
+.script-option { position: relative; }
+.script-era { border-left-width: 3px; }
+.script-verse {
+    margin-top: 6px;
+    font-size: 0.74rem;
+    color: var(--d5-gold);
+    letter-spacing: 1px;
+    font-family: 'STKaiti', 'KaiTi', serif;
+    opacity: 0.9;
+}
+.sc-chenghua { border-left-color: #b8893a; background: linear-gradient(90deg, rgba(184,137,58,0.14), transparent); }
+.sc-zhengde  { border-left-color: #8b2c1a; background: linear-gradient(90deg, rgba(139,44,26,0.16), transparent); }
+.sc-wanli    { border-left-color: #6d7db8; background: linear-gradient(90deg, rgba(109,125,184,0.13), transparent); }
+.sc-tianqi   { border-left-color: #4a3a2a; background: linear-gradient(90deg, rgba(74,58,42,0.3), transparent); }
+
+/* ---------- D5 王朝开场白淡入 ---------- */
+.dynasty-open {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background:
+        radial-gradient(60% 60% at 50% 45%, rgba(234,208,144,0.14), transparent 70%),
+        rgba(13,9,6,0.96);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+.dynasty-open.dynasty-open-show { opacity: 1; pointer-events: auto; }
+.dynasty-open-rule {
+    width: 320px;
+    height: 2px;
+    background: var(--d5-border);
+}
+.dynasty-open-name {
+    font-family: 'Ma Shan Zheng', 'STKaiti', serif;
+    font-size: 2rem;
+    letter-spacing: 14px;
+    color: #f0e2c0;
+    text-shadow: 0 0 14px rgba(212,169,79,0.5);
+}
+.dynasty-open-poem {
+    font-family: 'STKaiti', 'KaiTi', serif;
+    font-size: 1.05rem;
+    letter-spacing: 4px;
+    color: #dccfae;
+    text-align: center;
+}
+
+/* 响应式微调（mobileui） */
+@media (max-width: 768px) {
+    .report-title::before { display: none; }
+    .map-deco { height: 56px; }
+    .map-deco-title { font-size: 0.95rem; letter-spacing: 4px; }
+    .map-glyph { font-size: 12px; left: 4px; top: 4px; }
+    .talk-portrait-img { width: 96px; height: 128px; }
+    .dynasty-open-name { font-size: 1.5rem; letter-spacing: 8px; }
+}
+
+/* ============================================
+   v6.0 批A · 朝政总览看板
+   一屏看全局，免上下长滑；点卡片下钻对应功能。
+   桌面多列 / 移动端纵向但紧凑。只append，不改旧样式。
+   ============================================ */
+.overview-board {
+    padding: 4px 6px;
+    font-size: 0.92rem;
+}
+.ov-title-row {
+    display: flex; align-items: baseline; gap: 10px;
+    flex-wrap: wrap; margin-bottom: 10px;
+}
+.ov-title { font-size: 1.3rem; font-weight: 700; color: #e8d9a8; letter-spacing: 3px; }
+.ov-sub { font-size: 0.8rem; color: #b0a080; }
+.ov-section { margin-bottom: 12px; }
+.ov-sec-title { font-size: 0.82rem; color: #c8b887; letter-spacing: 2px; margin-bottom: 6px; border-bottom: 1px dashed rgba(200,180,120,.25); padding-bottom: 3px; }
+
+/* 资源卡网格 */
+.ov-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+.ov-card {
+    background: linear-gradient(160deg, rgba(70,55,30,.55), rgba(40,32,18,.65));
+    border: 1px solid rgba(190,165,110,.28);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+.ov-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+.ov-card-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.ov-card-icon {
+    width: 20px; height: 20px; line-height: 20px; text-align: center;
+    border: 1px solid rgba(230,200,130,.5); border-radius: 4px;
+    font-size: 12px; color: #e8d9a8; background: rgba(0,0,0,.25);
+}
+.ov-card-name { font-size: 0.88rem; color: #d8c99a; }
+.ov-card-tag { margin-left: auto; font-size: 0.72rem; padding: 0 6px; border-radius: 3px; }
+.ov-card-val { font-size: 1.15rem; font-weight: 700; color: #f0e4c0; margin-bottom: 5px; }
+.ov-card-bar { height: 5px; background: rgba(0,0,0,.35); border-radius: 3px; overflow: hidden; }
+.ov-card-fill { height: 100%; border-radius: 3px; transition: width .3s ease; }
+
+/* 资源卡阈值着色 */
+.ov-card.ov-bad { border-color: rgba(200,60,40,.65); }
+.ov-card.ov-bad .ov-card-tag { background: #7a1e12; color: #ffd0c0; }
+.ov-card.ov-bad .ov-card-val { color: #ffb0a0; }
+.ov-card.ov-warn { border-color: rgba(200,150,40,.5); }
+.ov-card.ov-warn .ov-card-tag { background: #7a5a14; color: #ffe0a0; }
+.ov-card.ov-warn .ov-card-val { color: #ffd98a; }
+.ov-card.ov-good { border-color: rgba(60,160,90,.55); }
+.ov-card.ov-good .ov-card-tag { background: #1c5a32; color: #c0ffd0; }
+.ov-card.ov-good .ov-card-val { color: #c8ffd0; }
+.ov-card.ov-ok { border-color: rgba(120,120,120,.35); }
+.ov-card.ov-ok .ov-card-tag { background: #3a3a28; color: #d0d0b0; }
+.ov-fill-bad { background: linear-gradient(90deg,#8a2418,#c04a30); }
+.ov-fill-warn { background: linear-gradient(90deg,#8a6a18,#d0a040); }
+.ov-fill-good { background: linear-gradient(90deg,#1c6a3a,#40b060); }
+.ov-fill-ok { background: linear-gradient(90deg,#5a5a40,#90906a); }
+
+/* 派系横条 */
+.ov-fac-grid { display: grid; gap: 6px; }
+.ov-fac { background: rgba(30,25,15,.5); border: 1px solid rgba(160,140,90,.22); border-radius: 6px; padding: 6px 9px; cursor: pointer; }
+.ov-fac:hover { border-color: rgba(210,185,130,.5); }
+.ov-fac-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.ov-fac-name { font-size: 0.85rem; color: #e0d2a8; }
+.ov-fac-val { font-size: 0.78rem; }
+.ov-fac-bar { height: 5px; background: rgba(0,0,0,.35); border-radius: 3px; overflow: hidden; }
+.ov-fac-fill { height: 100%; border-radius: 3px; }
+.ov-fac-bad { color: #ff9a80; }
+.ov-fac-proud { color: #ffc070; }
+.ov-fac-wait { color: #e0d090; }
+.ov-fac-low { color: #aac0a0; }
+.ov-fac-fill-bad { background: linear-gradient(90deg,#7a1a12,#b04028); }
+.ov-fac-fill-proud { background: linear-gradient(90deg,#7a5010,#c09038); }
+.ov-fac-fill-wait { background: linear-gradient(90deg,#5a5a28,#a0a04a); }
+.ov-fac-fill-low { background: linear-gradient(90deg,#2c4a2c,#609060); }
+
+/* 预警区 */
+.ov-warn-list { display: grid; gap: 5px; }
+.ov-warn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 6px;
+    background: rgba(30,26,16,.5); border: 1px solid rgba(160,140,90,.2);
+    cursor: default; font-size: 0.86rem;
+}
+.ov-warn[onclick], .ov-warn .ov-warn-go { cursor: pointer; }
+.ov-warn[onclick]:hover { border-color: rgba(210,185,130,.5); }
+.ov-warn-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+.ov-warn-critical { border-color: rgba(200,60,40,.55); }
+.ov-warn-critical .ov-warn-dot { background: #d04830; box-shadow: 0 0 6px rgba(208,72,48,.8); }
+.ov-warn-critical .ov-warn-txt { color: #ffc4b0; }
+.ov-warn-warn { border-color: rgba(200,150,40,.45); }
+.ov-warn-warn .ov-warn-dot { background: #d0a040; box-shadow: 0 0 5px rgba(208,160,64,.7); }
+.ov-warn-warn .ov-warn-txt { color: #ffe2a0; }
+.ov-warn-info { border-color: rgba(90,140,90,.35); }
+.ov-warn-info .ov-warn-dot { background: #5aa05a; box-shadow: 0 0 5px rgba(90,160,90,.6); }
+.ov-warn-info .ov-warn-txt { color: #c8e0b8; }
+.ov-warn-txt { flex: 1 1 auto; }
+.ov-warn-go { color: #b0a070; font-size: 0.9rem; }
+
+/* 主线进度 */
+.ov-ml { background: linear-gradient(160deg, rgba(60,45,25,.6), rgba(38,30,16,.65)); border: 1px solid rgba(180,155,100,.35); border-radius: 8px; padding: 9px 12px; cursor: pointer; }
+.ov-ml:hover { border-color: rgba(220,195,140,.6); }
+.ov-ml-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.ov-ml-name { font-size: 0.95rem; font-weight: 700; color: #e6d6a4; letter-spacing: 1px; }
+.ov-ml-done { font-size: 0.78rem; color: #b8e0b0; padding: 0 7px; background: #1c4a2a; border-radius: 3px; }
+.ov-ml-stage { font-size: 0.78rem; color: #ffe0a0; padding: 0 7px; background: #5a3a0e; border-radius: 3px; }
+.ov-ml-bar { height: 7px; background: rgba(0,0,0,.4); border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
+.ov-ml-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #8a2c1a, #c86a30, #e0a34a); transition: width .4s ease; }
+.ov-ml-meta { font-size: 0.76rem; color: #b0a080; }
+
+.ov-hint { margin-top: 10px; text-align: center; font-size: 0.74rem; color: #8a7a58; letter-spacing: 1px; }
+
+/* 响应式：≥768px 多列；<768px 每资源卡单列紧凑（横向排列，宽屏不塌） */
+@media (max-width: 767px) {
+    .ov-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .ov-card { padding: 6px 8px; }
+    .ov-card-val { font-size: 1.02rem; }
+    .overview-board { padding: 2px; }
+    .ov-title { font-size: 1.1rem; }
+}
+@media (min-width: 1400px) {
+    .ov-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ============================================================
+   v6.0 批B：内政新政（govern tab）—— 仅末尾追加，禁重排上游
+   ============================================================ */
+.gv-wrap { padding: 6px; font-size: 13px; }
+.gv-head { margin-bottom: 10px; }
+.gv-title { font-size: 18px; font-weight: bold; color: #8b2c1a; }
+.gv-desc { color: #6a6a6a; margin-top: 3px; font-size: 12px; }
+.gv-turmoil { margin-top: 8px; }
+.gv-tur-ok { color: #2e7d32; }
+.gv-tur-warning { color: #c77700; }
+.gv-tur-danger { color: #b71c1c; }
+.gv-bar { height: 10px; background: #e3d9c9; border-radius: 5px; overflow: hidden; margin-top: 4px; }
+.gv-bar-fill { height: 100%; transition: width .4s; }
+.gv-tur-ok { background: #2e7d32; }
+.gv-tur-warning { background: #c77700; }
+.gv-tur-danger { background: #b71c1c; }
+.gv-sec { margin: 12px 0 6px; border-bottom: 1px solid #d8cbb3; padding-bottom: 3px; }
+.gv-sec-t { font-weight: bold; color: #5a3a1a; }
+.gv-sec-cat { margin-top: 16px; }
+.gv-empty { color: #8a8a8a; font-style: italic; padding: 8px 0; }
+.gv-active-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0; }
+.gv-act-card { border: 1px solid #b98d3a; background: #faf3e3; border-radius: 6px; padding: 6px 10px; }
+.gv-act-meta { color: #7a5a2a; font-size: 11px; margin-top: 2px; }
+.gv-boost { color: #2e7d32; font-size: 11px; }
+.gv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.gv-card { border: 1px solid #cdbf9f; border-radius: 6px; padding: 8px; background: #fffdf7; display: flex; flex-direction: column; }
+.gv-card-t { font-weight: bold; color: #3a2a12; }
+.gv-tag { font-size: 10px; color: #fff; background: #8b2c1a; border-radius: 3px; padding: 1px 5px; margin-left: 4px; }
+.gv-card-desc { color: #555; margin: 4px 0; font-size: 12px; }
+.gv-card-meta { color: #7a5a2a; font-size: 11px; display: flex; flex-direction: column; gap: 2px; }
+.gv-card-risk { color: #a33; font-size: 11px; margin: 5px 0; }
+.gv-btn { margin-top: auto; background: #8b2c1a; color: #fff; border: none; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
+.gv-btn:hover:not(:disabled) { background: #6b1f12; }
+.gv-btn-dis { background: #b6a98e; color: #eee; cursor: not-allowed; }
+.gv-src { color: #9a8a6a; font-size: 10px; margin-top: 5px; font-style: italic; }
+.gv-his { border-left: 3px solid #d8cbb3; padding-left: 8px; }
+.gv-his-row { display: flex; gap: 8px; padding: 2px 0; color: #5a3a1a; font-size: 12px; }
+@media (max-width: 767px) {
+    .gv-grid { grid-template-columns: 1fr; }
+}
+/* ============ v6.0 批C · 军事战守扩充 ============ */
+.wr-unit { display: inline-block; background: #fffdf7; border: 1px solid #cdbf9f; border-radius: 4px; padding: 4px 7px; margin: 3px 2px; color: #3a2a12; font-size: 12px; }
+.wr-unit .btn { font-size: 11px; margin-left: 4px; }
+.wr-threat { display: inline-block; border: 1px solid #d8cbb3; border-radius: 4px; padding: 3px 8px; margin: 3px 4px 3px 0; font-size: 12px; color: #5a3a1a; background: #fdf8ee; }
+.wr-threat-on { border-color: #8b2c1a; background: #fbe9e0; color: #7a1f0f; }
+.wr-threat .btn { font-size: 11px; margin-left: 5px; }
+
+/* ================== 批D：权谋系统面板（结党/倾轧/阴谋/廷杖流放，仅末尾追加）================== */
+.intrigue-opt { font-size: 13px; padding: 8px 14px; margin: 4px 6px 4px 0; }
+#intrigue-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.intrigue-modal-src { font-size: 11px; color: #8a7a5a; margin-top: 6px; font-style: italic; }
+.cw-card { background: #fffdf7; border: 1px solid #cdbf9f; border-left: 4px solid #a33333; border-radius: 4px; padding: 8px 10px; margin: 6px 0; }
+.cw-card-title { font-weight: bold; color: #3a2a12; font-size: 14px; margin-bottom: 4px; }
+.cw-card-sub { font-size: 12px; color: #5a3a1a; line-height: 1.6; }
+.cw-tag { display: inline-block; background: #f3ead8; border: 1px solid #cdbf9f; border-radius: 3px; padding: 1px 6px; margin-left: 6px; font-size: 11px; color: #7a2a1a; }
+.cw-note { color: #5a3a1a; font-size: 12px; line-height: 1.7; }
+.cw-line { color: #3a2a12; font-size: 12px; line-height: 1.7; margin: 2px 0; }
+.cw-dim { color: #8a7a5a; font-size: 12px; line-height: 1.6; }
+.cw-warn { background: #fbe9e0; border: 1px solid #c06a3a; border-radius: 4px; padding: 6px 10px; color: #7a1f0f; font-size: 12px; }
+
+/* ============================================================
+   【批E·长线目标体系】王朝使命看板 / 总览使命条 / 终点王朝评价
+   仅追加；不改动既有规则。class 常量化；与主游戏观感统一（宣纸金绿）。
+   ============================================================ */
+.ms-title-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.ms-title { font-size: 20px; font-weight: 800; color: #7a2f0f; letter-spacing: 2px; }
+.ms-sub { font-size: 12px; color: #8a6a3a; }
+.ms-count { font-size: 13px; color: #5a4a2a; margin: 4px 0 10px; }
+.ms-list { display: flex; flex-direction: column; gap: 12px; }
+.ms-row { background: linear-gradient(180deg, #fdf8ec, #f5ead0); border: 1px solid #cdb488;
+    border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(90,60,20,.08); }
+.ms-row.ms-使命-完成 { border-color: #3a8a3a; background: linear-gradient(180deg,#f0faEF,#dff0dd); }
+.ms-row.ms-使命-将成 { border-color: #b08a2a; }
+.ms-row-head { display: flex; align-items: center; gap: 8px; }
+.ms-icon { width: 26px; height: 26px; border-radius: 50%; background: #7a2f0f; color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 15px; flex: 0 0 26px; }
+.ms-name { font-size: 16px; font-weight: 700; color: #3a2a12; }
+.ms-tag { margin-left: auto; font-size: 12px; padding: 1px 8px; border-radius: 10px;
+    background: #c99b3a; color: #3a2a12; }
+.ms-row.ms-使命-完成 .ms-tag { background: #3a8a3a; color: #fff; }
+.ms-row.ms-使命-完成 .ms-icon { background: #3a8a3a; }
+.ms-desc { font-size: 12px; color: #5a4a2a; margin: 5px 0 6px; line-height: 1.6; }
+.ms-bar { height: 10px; background: #e7d9b8; border-radius: 5px; overflow: hidden; }
+.ms-fill { height: 100%; background: linear-gradient(90deg, #7a2f0f, #c99b3a); border-radius: 5px; transition: width .4s; }
+.ms-meta { display: flex; align-items: center; gap: 10px; margin-top: 7px; font-size: 12px; color: #6a5a3a; }
+.ms-cur { font-weight: 600; color: #7a2f0f; }
+.ms-need { color: #8a7a5a; }
+.ms-pct { margin-left: auto; font-weight: 700; color: #3a2a12; }
+.ms-src { font-size: 11px; color: #9a8a6a; margin-top: 4px; line-height: 1.5; }
+/* 总览使命条 */
+.ms-mini-list { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.ms-mini-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #5a4a2a; }
+.ms-mini-icon { font-size: 12px; }
+.ms-mini-name { flex: 0 0 58px; }
+.ms-mini-bar { flex: 1; height: 8px; background: #e7d9b8; border-radius: 4px; overflow: hidden; }
+.ms-mini-fill { height: 100%; background: linear-gradient(90deg,#7a2f0f,#c99b3a); border-radius: 4px; }
+.ms-mini-pct { flex: 0 0 30px; text-align: right; font-weight: 600; }
+/* 终点王朝评价 */
+.mission-ending { border: 1px solid #b08a4a; border-radius: 8px; padding: 12px 14px; margin-top: 8px;
+    background: linear-gradient(180deg, #f8eecf, #f0ddb0); }
+.mission-ending .mainline-ending-head { color: #7a2f0f; font-weight: 700; }
+.mission-ending .mainline-ending-title { font-size: 18px; font-weight: 800; color: #5a2f0f; margin: 4px 0; }
+.mission-ending .mainline-ending-content { font-size: 12px; color: #4a3a1a; line-height: 1.7; }
+.ms-end-圣 { border-color: #7a8a2a; }
+.ms-end-令 { border-color: #b08a2a; }
+
+/* ===== 批F(v6.1)：军事科技树 ===== */
+.mt-line { margin: 6px 0; }
+.mt-line b { color: #c8a04b; }
