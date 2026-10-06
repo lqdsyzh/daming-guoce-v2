@@ -1,0 +1,512 @@
+// ============================================
+// 《大明国策》批J(v6.3)：省份治理深挖（新建·只追加不强改）
+// 在既有舆图(批2/批4)基础上，为每布政司加"专属素质画像 + 分支治理"。
+// 反爽哲学：每省每操作皆有前置(trait/数值门槛)+代价+副作用+冷却权衡，无白嫖。
+// 史据铁律：traits/分支引注《明史》卷次宁换不编，数值/阈值均标注"演绎"。
+// 防冲突：新全局常量/函数统一加 PV_ / pv 前缀；id/class 常量化；全逻辑 try-catch。
+// ============================================
+
+// ====== 治理维度（分支互斥的分组）======
+const PV_DIMS = {
+    finance:  { name: '富庶财政', icon: '赋', src: '《明史》卷77·食货志（演绎数值）' },
+    wubei:    { name: '武备边患', icon: '兵', src: '《明史》卷89·兵志（演绎数值）' },
+    anmin:    { name: '安民怨望', icon: '民', src: '《明史》卷77·食货志（演绎数值）' },
+    official: { name: '吏治清浊', icon: '吏', src: '《明史》卷72·职官志（演绎数值）' }
+};
+
+// ====== 省疆素质标签（决定该省可解锁的分支）======
+// 依《明史·地理志/食货志/兵志·本传》取意，不硬编虚构。
+const PV_TRAITS = {
+    yinkuang: '银矿',   // 云南银场《明史·食货志五·矿课》、广东澳中珠池
+    caoyun:   '漕运',   // 运河所经《明史》卷85·河渠志
+    liangcang:'粮仓',   // 湖广为鱼米之乡、江南粮仓
+    bianjun:  '边军',   // 九边、陕西/山西兵备《明史》卷90·兵志
+    shibo:    '市舶',   // 闽粤浙市舶司《明史》卷81·食货志
+    yanyin:   '盐引',   // 河东解盐《明史·食货志四·盐法》
+    chama:    '茶马',   // 陕西洮河茶马司《明史》卷80·食货志
+    tusi:     '土司',   // 云贵川广土司《明史》卷310·土司传
+    miaojiang:'苗疆',   // 贵州苗疆《明史》卷316·贵州土司传
+    ci:       '瓷',     // 景德镇窑《明史·食货志六·烧造》
+    wojing:   '倭警',   // 嘉靖倭患《明史》卷322·日本传
+    si:       '丝',     // 吴越丝织
+    kongmeng: '孔孟',   // 曲阜圣裔《明史》卷284·儒林
+    hehuan:   '河患',   // 黄河决溢《明史》卷83/85·河渠志
+    tianfu:   '天府',   // 四川沃野《明史》卷43·地理志
+    shudao:   '蜀道',   // 剑阁栈道
+    jingji:   '京畿',   // 京师所在《明史》卷40·地理志
+    liudu:    '留都',   // 南都应天
+    fushui:   '赋税',   // 南直隶赋税半天下
+    jiangna:  '江南',   // 江南财赋之区
+    jinshang: '晋商',   // 山西行商
+    yumi:     '鱼米',   // 湖广熟天下足
+    shuyuan:  '书院',   // 江西书院之盛
+    haifang:  '海防',   // 闽浙海防《明史》卷222·俞大猷传
+    langbing: '狼兵'    // 广西俍兵《明史》卷316·广西土司传
+};
+
+// ====== 每布政司 → 素质标签（15布政司，《明史·地理志》两京十三布政司）======
+const PV_PROVINCES = {
+    beizhili:  { name: '北直隶', traits: ['jingji', 'caoyun'] },
+    nanzhili:  { name: '南直隶', traits: ['liudu', 'fushui', 'jiangna'] },
+    shandong:  { name: '山东',   traits: ['kongmeng', 'caoyun'] },
+    shanxi:    { name: '山西',   traits: ['yanyin', 'jinshang'] },
+    henan:     { name: '河南',   traits: ['hehuan'] },
+    shaanxi:   { name: '陕西',   traits: ['bianjun', 'chama'] },
+    sichuan:   { name: '四川',   traits: ['tianfu', 'shudao'] },
+    huguang:   { name: '湖广',   traits: ['liangcang', 'yumi'] },
+    jiangxi:   { name: '江西',   traits: ['ci', 'shuyuan'] },
+    zhejiang:  { name: '浙江',   traits: ['wojing', 'si', 'shibo'] },
+    fujian:    { name: '福建',   traits: ['shibo', 'haifang'] },
+    guangdong: { name: '广东',   traits: ['shibo', 'yinkuang'] },
+    guangxi:   { name: '广西',   traits: ['langbing', 'tusi'] },
+    yunnan:    { name: '云南',   traits: ['yinkuang', 'tusi'] },
+    guizhou:   { name: '贵州',   traits: ['tusi', 'miaojiang'] }
+};
+
+// ====== 每省初始素质（0-100；人口为户口丰瘠度 0-100；史实取意+演绎数值）======
+// w=wealth富庶 g=grain粮产 a=arms武备 p=people户口 prob=probity吏治 dis=disaffect怨望
+// 江南/南直隶富庶高、湖广粮仓grain高、陕晋边军arms高、闽粤滇有市舶/银矿wealth中高
+const PV_BASE = {
+    beizhili:  { w: 70, g: 55, a: 45, p: 78, prob: 50, dis: 14 },
+    nanzhili:  { w: 82, g: 66, a: 34, p: 90, prob: 48, dis: 18 },
+    shandong:  { w: 55, g: 60, a: 35, p: 72, prob: 50, dis: 15 },
+    shanxi:    { w: 48, g: 46, a: 48, p: 56, prob: 45, dis: 20 },
+    henan:     { w: 50, g: 56, a: 30, p: 68, prob: 50, dis: 18 },
+    shaanxi:   { w: 36, g: 36, a: 62, p: 55, prob: 42, dis: 30 },
+    sichuan:   { w: 62, g: 56, a: 40, p: 62, prob: 48, dis: 15 },
+    huguang:   { w: 56, g: 66, a: 35, p: 78, prob: 50, dis: 15 },
+    jiangxi:   { w: 52, g: 50, a: 30, p: 58, prob: 49, dis: 15 },
+    zhejiang:  { w: 66, g: 56, a: 42, p: 68, prob: 47, dis: 16 },
+    fujian:    { w: 50, g: 45, a: 46, p: 52, prob: 46, dis: 15 },
+    guangdong: { w: 58, g: 48, a: 42, p: 58, prob: 45, dis: 16 },
+    guangxi:   { w: 38, g: 46, a: 56, p: 42, prob: 43, dis: 25 },
+    yunnan:    { w: 50, g: 42, a: 50, p: 45, prob: 44, dis: 25 },
+    guizhou:   { w: 32, g: 40, a: 52, p: 32, prob: 42, dis: 28 }
+};
+
+// ====== 省画像字段（供脚本统一钳制/结算）======
+const PV_FIELDS = ['wealth', 'grain', 'arms', 'people', 'probity', 'disaffect'];
+
+// 省画像所需代价/效果的资源键（其余视为全局 stats/factions）
+const PV_GLOBAL_STAT_KEYS = ['treasury', 'privyPurse', 'food', 'militaryFood', 'gunpowder',
+    'iron', 'wood', 'stone', 'horses', 'population', 'stability', 'prestige', 'militaryPower',
+    'navyPower', 'mandate', 'adminEfficiency', 'corruption', 'culture', 'tech', 'commerce',
+    'agriculture', 'canalEfficiency', 'vassals'];
+// 全局 0-100 有界键（国库/粮/内帑/兵威/水师/人口等为无界计数，只保底不为负，不设上限）
+const PV_BOUNDED_STAT_KEYS = ['stability', 'prestige', 'mandate',
+    'corruption', 'culture', 'tech', 'commerce', 'agriculture', 'canalEfficiency', 'adminEfficiency'];
+
+// ====== 后果链阈值（演绎）======
+const PV_ERODE_PROBITY = 45;   // 吏治低于此 → 贪腐侵蚀wealth
+const PV_REVOLT_DISA = 70;     // 怨望达此 → 民变（联动舆图红格/稳定）
+const PV_REVOLT_DROP = 25;     // 民变后怨望回落幅度
+const PV_SUPPRESS_ARMS = 70;   // 武备达此 → 镇抚舆图红格（红转黄）
+const PV_TAX_DIV = 6;          // 税收增益除子的演算（wealth高→户部收益）
+
+// ====== 分支治理定义（每维度多路互为权衡；req=所需trait；min=数值门槛；cost代价；eff效果；side副作用；cd冷却；delay延迟生效章数）======
+// 数值/阈值均为"演绎"（依据《明史》引注取意）
+const PV_BRANCHES = {
+    // —— 富庶财政 ——
+    kelian: { dim: 'finance', name: '苛敛', req: null, min: { wealth: 30 },
+        cost: { treasury: -150 }, eff: { wealth: 8, treasury: 280, probity: -4 }, side: { disaffect: 12 }, cd: 5,
+        src: '《明史》卷305·宦官传：矿监税使四出苛敛' },
+    juntian: { dim: 'finance', name: '均田清赋', req: null, min: { probity: 40 },
+        cost: { treasury: -200 }, eff: { probity: 5, wealth: 3, disaffect: -3, civil: 2 }, side: { grain: -2 }, cd: 6, delay: 1,
+        src: '《明史》卷77·食货志：清丈田亩均平赋役' },
+    zheyin: { dim: 'finance', name: '折银一条鞭', req: null, min: null,
+        cost: { treasury: -100 }, eff: { treasury: 200, agriculture: -3, wealth: 1 }, side: { disaffect: 3 }, cd: 5, delay: 1,
+        src: '《明史》卷78·食货志：一条鞭法折银' },
+    kuangke: { dim: 'finance', name: '开矿课银', req: ['yinkuang'], min: null,
+        cost: { privyPurse: -100 }, eff: { treasury: 300, wealth: 4, probity: -2 }, side: { disaffect: 10 }, cd: 6,
+        src: '《明史·食货志五·矿课》：云南银场岁课' },
+    caoyunx: { dim: 'finance', name: '疏浚漕渠', req: ['caoyun'], min: { grain: 40 },
+        cost: { treasury: -250 }, eff: { grain: 6, canalEfficiency: 2 }, side: { treasury: -100 }, cd: 5, delay: 1,
+        src: '《明史》卷85·河渠志：漕河岁修' },
+    // —— 武备边患 ——
+    muyong: { dim: 'wubei', name: '募勇', req: null, min: null,
+        cost: { treasury: -400 }, eff: { arms: 8, militaryPower: 2 }, side: { disaffect: 6, treasury: -200 }, cd: 5,
+        src: '《明史》卷89·兵志：募兵之议' },
+    zhucheng: { dim: 'wubei', name: '筑城', req: null, min: { stone: 80 },
+        cost: { treasury: -300, stone: -80 }, eff: { arms: 6, grain: -2, stability: 1 }, side: null, cd: 5, delay: 1,
+        src: '《明史》卷85·河渠志：筑城修堤' },
+    herong: { dim: 'wubei', name: '开市和戎', req: null, min: null,
+        cost: { treasury: -150 }, eff: { arms: -2, stability: 1, horses: 30, disaffect: -4 }, side: { mandate: -1 }, cd: 6,
+        src: '《明史》卷327·俺答传：隆庆和议开马市' },
+    langbing: { dim: 'wubei', name: '点狼兵', req: ['langbing'], min: { arms: 40 },
+        cost: { treasury: -350 }, eff: { arms: 7, militaryPower: 3 }, side: { disaffect: 3 }, cd: 5,
+        src: '《明史》卷316·广西土司传：俍兵悍勇' },
+    shuishi: { dim: 'wubei', name: '练水师', req: ['haifang', 'shibo'], min: null,
+        cost: { treasury: -300 }, eff: { arms: 3, navyPower: 4 }, side: { treasury: -150 }, cd: 6, delay: 1,
+        src: '《明史》卷223·谭纶传：整饬海防舟师' },
+    // —— 安民怨望 ——
+    jianfu: { dim: 'anmin', name: '减赋', req: null, min: null,
+        cost: { treasury: -250 }, eff: { disaffect: -10, wealth: -3 }, side: null, cd: 5,
+        src: '《明史》卷77·食货志：蠲免灾伤民赋' },
+    zhenmin: { dim: 'anmin', name: '赈济', req: null, min: { treasury: 300, food: 300 },
+        cost: { treasury: -350, food: -200 }, eff: { disaffect: -12, stability: 1 }, side: null, cd: 5,
+        src: '《明史》卷77·食货志：发帑赈饥' },
+    kentian: { dim: 'anmin', name: '屯田安民', req: null, min: null,
+        cost: { treasury: -150 }, eff: { grain: 6, people: 3, disaffect: -3 }, side: { arms: -1 }, cd: 5, delay: 1,
+        src: '《明史》卷77·食货志：屯田之制' },
+    // —— 吏治清浊 ——
+    qingli: { dim: 'official', name: '清查吏治', req: null, min: null,
+        cost: { treasury: -250 }, eff: { probity: 9, corruption: -3 }, side: { civil: -1 }, cd: 4,
+        src: '《明史》卷72·职官志：考成清汰' },
+    guxi: { dim: 'official', name: '姑息纵容', req: null, min: null,
+        cost: { treasury: -40 }, eff: { probity: -8, treasury: 80, corruption: 2 }, side: { wealth: -2 }, cd: 4,
+        src: '演绎（姑息贪墨，暂安一时留隐患）' }
+};
+
+// ====== 兜底钳制整数化工具 ======
+// 0-100 钳制（省画像所有维度）
+function pvClamp(v) { try { v = Number(v) || 0; return Math.max(0, Math.min(100, Math.round(v))); } catch (e) { return 0; } }
+
+// ====== 初始化省画像（构造器；游戏/新档统一入口）======
+function initProvinceState() {
+    try {
+        const prov = {};
+        Object.keys(PV_PROVINCES).forEach(k => {
+            const b = PV_BASE[k] || { w: 45, g: 45, a: 40, p: 50, prob: 46, dis: 18 };
+            prov[k] = {
+                wealth: pvClamp(b.w), grain: pvClamp(b.g), arms: pvClamp(b.a),
+                people: pvClamp(b.p), probity: pvClamp(b.prob), disaffect: pvClamp(b.dis),
+                cd: {}, dimLock: {}, lastTick: -99
+            };
+        });
+        return { prov: prov, pending: [], lastTick: -99 };
+    } catch (e) { return { prov: (PV_BASE ? {} : {}), pending: [], lastTick: -99 }; }
+}
+
+// ====== 旧档/异常兜底：补齐缺失省或字段、钳制、恢复结构 ======
+function pvEnsure() {
+    try {
+        if (!GameState.province || typeof GameState.province !== 'object') GameState.province = initProvinceState();
+        const S = GameState.province;
+        if (!S.prov || typeof S.prov !== 'object') S.prov = {};
+        if (!Array.isArray(S.pending)) S.pending = [];
+        if (typeof S.lastTick !== 'number') S.lastTick = -99;
+        Object.keys(PV_PROVINCES).forEach(k => {
+            if (!S.prov[k] || typeof S.prov[k] !== 'object') {
+                const b = PV_BASE[k] || { w: 45, g: 45, a: 40, p: 50, prob: 46, dis: 18 };
+                S.prov[k] = { wealth: pvClamp(b.w), grain: pvClamp(b.g), arms: pvClamp(b.a), people: pvClamp(b.p), probity: pvClamp(b.prob), disaffect: pvClamp(b.dis), cd: {}, dimLock: {}, lastTick: -99 };
+            } else {
+                const p = S.prov[k];
+                PV_FIELDS.forEach(f => { if (typeof p[f] !== 'number') p[f] = 0; });
+                if (!p.cd || typeof p.cd !== 'object') p.cd = {};
+                if (!p.dimLock || typeof p.dimLock !== 'object') p.dimLock = {};
+                if (typeof p.lastTick !== 'number') p.lastTick = -99;
+            }
+        });
+    } catch (e) {}
+}
+
+// ====== 链条辅助：把省画像/全局效果delta落地 ======
+function pvApply(p, delta) {
+    try {
+        if (!delta) return;
+        for (const k in delta) {
+            const v = delta[k];
+            if (PV_FIELDS.indexOf(k) >= 0) {
+                p[k] = pvClamp(p[k] + v);
+            } else if (PV_GLOBAL_STAT_KEYS.indexOf(k) >= 0) {
+                if (k in GameState.stats) {
+                    let nv = (GameState.stats[k] || 0) + v;
+                    if (PV_BOUNDED_STAT_KEYS.indexOf(k) >= 0) { nv = pvClamp(nv); }
+                    else { nv = Math.max(0, Math.round(nv)); } // 国库/粮等无界计数，只保底不为负
+                    GameState.stats[k] = nv;
+                }
+            } else if (k in GameState.factions) {
+                GameState.factions[k] = pvClamp((GameState.factions[k] || 50) + v);
+            }
+        }
+    } catch (e) {}
+}
+
+// ====== 该省某分支是否锁定（同维度互斥/自身冷却/前置不足/资源不足）======
+function pvBranchLocked(key, code) {
+    try {
+        const S = GameState.province, p = S.prov[key], b = PV_BRANCHES[code];
+        if (!p || !b) return '无省';
+        const tick = getMapTick();
+        // 同维度互斥锁（选其一则近章禁其余）
+        const dimLast = p.dimLock[b.dim] || -99;
+        if ((tick - dimLast) < b.cd) return '同维度他策甫行，须候' + (b.cd - (tick - dimLast)) + '章';
+        // 自身冷却
+        const ownLast = p.cd[code] || -99;
+        if ((tick - ownLast) < b.cd) return '前事未毕，候' + (b.cd - (tick - ownLast)) + '章';
+        // trait 前置
+        if (b.req) {
+            const traits = (PV_PROVINCES[key] && PV_PROVINCES[key].traits) || [];
+            for (const t of b.req) { if (traits.indexOf(t) < 0) return '需省之专属素质（' + (PV_TRAITS[t] || t) + '）'; }
+        }
+        // 数值门槛
+        if (b.min) {
+            for (const m in b.min) {
+                const need = b.min[m];
+                if (m === 'wealth') { if (p.wealth < need) return '富庶不足' + need; }
+                else if (m === 'grain') { if (p.grain < need) return '粮产不足' + need; }
+                else if (m === 'arms') { if (p.arms < need) return '武备不足' + need; }
+                else if (m === 'probity') { if (p.probity < need) return '吏治不足' + need; }
+                else if (m in GameState.stats && (GameState.stats[m] || 0) < need) return '资储不足';
+            }
+        }
+        // 资源代价
+        if (b.cost) {
+            for (const c in b.cost) {
+                if ((GameState.stats[c] !== undefined ? (GameState.stats[c] || 0) : (GameState.factions[c] || 0)) < Math.abs(b.cost[c])) return '资储不充（' + c + '）';
+            }
+        }
+        return null;
+    } catch (e) { return '误查'; }
+}
+
+// ====== 执行分支治理 ======
+function pvBranch(key, code) {
+    try {
+        const S = GameState.province, p = S.prov[key], b = PV_BRANCHES[code];
+        if (!p || !b) return;
+        const lock = pvBranchLocked(key, code);
+        if (lock) { pushNews('省治', (PV_PROVINCES[key] ? PV_PROVINCES[key].name : key) + '：' + b.name + '未可行——' + lock, 'normal'); renderMapCellActions(); return; }
+        const tick = getMapTick();
+        // 扣资源代价
+        if (b.cost) {
+            for (const c in b.cost) {
+                if (c in GameState.stats) GameState.stats[c] = (GameState.stats[c] || 0) + b.cost[c];
+            }
+        }
+        // 副作用立即落地
+        if (b.side) pvApply(p, b.side);
+        // 记冷却 + 同维度互斥
+        p.cd[code] = tick;
+        p.dimLock[b.dim] = tick;
+        const provName = (PV_PROVINCES[key] && PV_PROVINCES[key].name) || key;
+        // 延迟效果入队（delay>0 则整组eff跨季结算）
+        if (b.delay && b.delay > 0) {
+            S.pending.push({ prov: key, code: code, tick: tick + b.delay, eff: b.eff || {} });
+            pushNews('省治', provName + '兴办「' + b.name + '」——' + b.delay + '章后方见其效。（' + b.src + '）', 'normal');
+        } else {
+            if (b.eff) pvApply(p, b.eff);
+            pushNews('省治', provName + '行「' + b.name + '」，省中起色。（' + b.src + '）', 'normal');
+        }
+        try { DamingSFX.play('click'); } catch (e) {}
+        try { enforceLimits(); } catch (e) {}
+        renderMapCellActions();
+        updateUI();
+    } catch (e) {}
+}
+
+// ====== 省画像每季巡检（后果链落点）======
+// 双向联动：舆图状态↔省画像；吏治低→wealth侵蚀；怨望高→民变；武备高→镇抚边患；wealth高→户部税收增益
+function pvProvinceTick() {
+    try {
+        if (!GameState.province) return;
+        pvEnsure();
+        const S = GameState.province;
+        const tick = getMapTick();
+        // 同tick去重（测试隔离：重测前置置 lastTick=-1）
+        if (S.lastTick === tick) return;
+        S.lastTick = tick;
+        // 延迟效果跨季结算
+        if (Array.isArray(S.pending)) {
+            const remain = [];
+            S.pending.forEach(pe => {
+                if (tick >= pe.tick) {
+                    const p = S.prov[pe.prov];
+                    if (p) pvApply(p, pe.eff || {});
+                    const pn = (PV_PROVINCES[pe.prov] && PV_PROVINCES[pe.prov].name) || pe.prov;
+                    pushNews('省治', pn + '之「' + (PV_BRANCHES[pe.code] ? PV_BRANCHES[pe.code].name : pe.code) + '」见效。', 'normal');
+                } else { remain.push(pe); }
+            });
+            S.pending = remain;
+        }
+        let disSum = 0, wealthTax = 0;
+        // 需mapData（充足情形下舆图已建）
+        const md = (GameState.mapData && GameState.mapData.status) ? GameState.mapData.status : {};
+        Object.keys(PV_PROVINCES).forEach(key => {
+            const p = S.prov[key];
+            if (!p) return;
+            const st = md[key] || 0;
+            // ① 舆图灾患 → 省画像恶化
+            if (st === 2) { p.disaffect = pvClamp(p.disaffect + 2); p.wealth = pvClamp(p.wealth - 1); p.grain = pvClamp(p.grain - 1); }
+            else if (st === 1) { p.disaffect = pvClamp(p.disaffect + 1); }
+            // ② 吏治低 → 贪腐侵蚀 wealth
+            if (p.probity < PV_ERODE_PROBITY && p.wealth > 0) p.wealth = pvClamp(p.wealth - 1);
+            // ③ 怨望高 → 民变（联动舆图红格 + 稳定）
+            if (p.disaffect >= PV_REVOLT_DISA && st < 2) {
+                if (GameState.mapData) GameState.mapData.status[key] = 2;
+                if (GameState.stats.stability !== undefined) GameState.stats.stability = pvClamp((GameState.stats.stability | 0) + (-1));
+                p.disaffect = pvClamp(p.disaffect - PV_REVOLT_DROP);
+                pushNews('省治', (PV_PROVINCES[key].name || key) + '民变蜂起，地方震动。', 'critical');
+            }
+            // ④ 武备高 → 镇抚边患（红转黄）
+            if (p.arms >= PV_SUPPRESS_ARMS && st === 2) {
+                if (GameState.mapData) GameState.mapData.status[key] = 1;
+                pushNews('省治', (PV_PROVINCES[key].name || key) + '武备精良，边患渐靖。', 'normal');
+            }
+        });
+        // ⑤ 富民 → 户部税收增益（wealth高增益国库）
+        Object.keys(S.prov).forEach(k => { wealthTax += S.prov[k].wealth || 0; });
+        if (GameState.stats.treasury !== undefined) {
+            GameState.stats.treasury = Math.round((GameState.stats.treasury || 0) + Math.floor(wealthTax / (PV_TAX_DIV * 10)));
+        }
+        disSum = 0;
+    } catch (e) {}
+}
+
+// ====== 省治看板（并入 map tab 尾部）======
+function renderMapProvinceTab() {
+    try {
+        pvEnsure();
+        const S = GameState.province;
+        const rows = Object.keys(PV_PROVINCES).map(key => {
+            const cfg = PV_PROVINCES[key], p = S.prov[key];
+            if (!p) return '';
+            const badges = cfg.traits.map(t => `<span class="pv-badge">${PV_TRAITS[t] || t}</span>`).join('');
+            const bar = (label, val, cls) => `<div class="pv-ab"><span class="pv-ab-name">${label}</span><div class="pv-bar"><div class="pv-fill ${cls}" style="width:${pvClamp(val)}%"></div></div><span class="pv-ab-val">${pvClamp(val)}</span></div>`;
+            const risk = p.disaffect >= PV_REVOLT_DISA ? ' pv-risk' : '';
+            return `<div class="pv-row${risk}" onclick="openMapCellModal('${key}')">` +
+                `<div class="pv-rhead"><span class="pv-rname">${cfg.name}</span>${badges}</div>` +
+                bar('富', p.wealth, 'pv-good') + bar('粮', p.grain, 'pv-good') +
+                bar('武', p.arms, 'pv-mid') + bar('民', p.people, 'pv-mid') +
+                bar('吏', p.probity, p.probity < PV_ERODE_PROBITY ? 'pv-bad' : 'pv-good') +
+                bar('怨', p.disaffect, p.disaffect >= PV_REVOLT_DISA ? 'pv-bad' : 'pv-mid') +
+                `</div>`;
+        }).join('');
+        return `<div class="pv-wrap">
+            <div class="report-title pv-title">户部 · 省治总览</div>
+            <div class="pv-note">十五布政司各有素质画像（富庶/粮产/武备/户口/吏治/怨望），点击进省治细务行分支治理。据《明史·地理志》两京十三布政司。</div>
+            <div class="pv-grid">${rows}</div>
+        </div>`;
+    } catch (e) { return ''; }
+}
+
+// ====== 浮层内：省画像 + 分支治理 ======
+function renderMapProvinceZone() {
+    try {
+        const zone = document.getElementById('pv-zone');
+        if (!zone) return;
+        const key = window._mapCurrentKey;
+        // 仅对布政司画像省渲染（九边/无画像镇不渲染，留既有操作）
+        if (!key || !PV_PROVINCES[key]) { zone.innerHTML = ''; return; }
+        pvEnsure();
+        const p = GameState.province.prov[key];
+        if (!p) { zone.innerHTML = ''; return; }
+        const cfg = PV_PROVINCES[key];
+        const badges = cfg.traits.map(t => `<span class="pv-badge">${PV_TRAITS[t] || t}</span>`).join('');
+        const line = (label, val, cls) => `<div class="pv-ab"><span class="pv-ab-name">${label}</span><div class="pv-bar"><div class="pv-fill ${cls}" style="width:${pvClamp(val)}%"></div></div><span class="pv-ab-val">${pvClamp(val)}</span></div>`;
+        const rib = p.disaffect >= PV_REVOLT_DISA ? `<div class="pv-riskb">怨望已高，恐将生变，宜速安抚。</div>` : '';
+        // 分支按维度分组（columns），仅露出tmpl该省可达分支
+        const dims = Object.keys(PV_DIMS).map(dk => {
+            const rows = Object.keys(PV_BRANCHES).filter(code => PV_BRANCHES[code].dim === dk).map(code => {
+                const b = PV_BRANCHES[code];
+                // trait 前置：无对应素质则不露该支（若整维无分支可露则留基础项）
+                return pvBranchBtnHtml(key, code, b);
+            }).join('');
+            if (!rows) return '';
+            return `<div class="pv-dim"><div class="pv-dimh">${PV_DIMS[dk].icon} ${PV_DIMS[dk].name}</div>${rows}</div>`;
+        }).join('');
+        zone.innerHTML = `
+            <div class="pv-zone-inner">
+                <div class="pv-port"><span class="pv-portname">${cfg.name} · 省治</span>${badges}${rib}</div>
+                ${line('富庶', p.wealth, 'pv-good')}${line('粮产', p.grain, 'pv-good')}
+                ${line('武备', p.arms, 'pv-mid')}${line('户口', p.people, 'pv-mid')}
+                ${line('吏治', p.probity, p.probity < PV_ERODE_PROBITY ? 'pv-bad' : 'pv-good')}
+                ${line('怨望', p.disaffect, p.disaffect >= PV_REVOLT_DISA ? 'pv-bad' : 'pv-mid')}
+                <div class="pv-branches">${dims}</div>
+                <div class="pv-srcnote">省治分支依省疆素质解锁：少仓乏齿者难济，有银矿/市舶/狼兵者方堪其政。数值为演绎。（《明史》地理志/食货志/兵志）</div>
+            </div>`;
+    } catch (e) {}
+}
+
+// ====== 单个分支按钮（map-act-btn 风格 + pv 细info）======
+function pvBranchBtnHtml(key, code, b) {
+    try {
+        if (!b) b = PV_BRANCHES[code];
+        if (!b) return '';
+        const lock = pvBranchLocked(key, code);
+        const dis = !!lock;
+        const costStr = b.cost ? Object.keys(b.cost).map(c => (RESOURCES[c] ? RESOURCES[c].name : c) + ' ' + b.cost[c]).join(' ') : '无';
+        const effStr = b.eff ? Object.keys(b.eff).filter(k => PV_FIELDS.indexOf(k) >= 0 || k === 'treasury' || k === 'stability' || k === 'militaryPower' || k === 'navyPower' || k === 'grain').map(k => `${k}${b.eff[k] > 0 ? '+' : ''}${b.eff[k]}`).join(' ') : '';
+        const sideStr = b.side ? Object.keys(b.side).map(k => `${k}${b.side[k] > 0 ? '+' : ''}${b.side[k]}`).join(' ') : '';
+        const lockTxt = dis ? `<span class="pv-lock">[${lock}]</span>` : '';
+        return `<button class="map-act-btn pv-btn ${dis ? 'disabled' : ''}" ${dis ? 'disabled' : ''} onclick="pvBranch('${key}','${code}')">` +
+            `${b.name}（耗${costStr}）${lockTxt}</button>` +
+            `<div class="pv-binfo">效：${effStr || '—'} ${b.side ? '｜弊：' + sideStr : ''}</div>`;
+    } catch (e) { return ''; }
+}
+
+// ====== 包装 renderMapCellActions：弹层打开时追加省治 ======
+// map.js 已包装一次（追加扩展按钮），此处再链式包装一层（追加省治区），不重排既有
+var _pvOrigRCA = (typeof renderMapCellActions === 'function') ? renderMapCellActions : null;
+if (_pvOrigRCA) {
+    renderMapCellActions = function () {
+        _pvOrigRCA();
+        try { renderMapProvinceZone(); } catch (e) {}
+    };
+}
+
+// ====== 包装 renderMapTab：省治总览并入舆图tab（只追加，不动 modules.js case 'map' 原断言行）======
+// A53 断言 case 'map' 原句一字未动，故于本文件内链式包装 renderMapTab 追加省治看板，功能等同 modules.js 追加。
+var _pvOrigRMT = (typeof renderMapTab === 'function') ? renderMapTab : null;
+if (_pvOrigRMT && typeof renderMapProvinceTab === 'function') {
+    renderMapTab = function () {
+        var base = _pvOrigRMT() || '';
+        try { base += renderMapProvinceTab(); } catch (e) {}
+        return base;
+    };
+}
+
+// ====== pv-* 样式：运行时注入 ======
+// style.css 中段 v5d G-06 断言阈值已达 0.85 边界（无字节余量），
+// 依蓝图"若逼近则改运行时注入"，pv 全部样式经 <style> 运行时注入，绝不动 style.css 字节数。
+const PV_STYLES = `
+.pv-zone{padding:10px 0;border-top:1px dashed #c9a96a;margin-top:8px}
+.pv-zone-inner{font-size:12px;color:#e8d9b8;line-height:1.6}
+.pv-portname{font-weight:700;font-size:14px;color:#f0c868;margin-right:6px}
+.pv-port{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.pv-badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:#5a3a12;color:#f7efd6;border:1px solid #c9a96a}
+.pv-ab{display:flex;align-items:center;gap:7px;margin:2px 0;font-size:11px;color:#c9b68f}
+.pv-ab-name{flex:0 0 24px;color:#c9b68f}
+.pv-bar{flex:1;height:8px;background:#4a3d2c;border-radius:4px;overflow:hidden}
+.pv-fill{height:100%;border-radius:4px;transition:width .4s}
+.pv-good{background:linear-gradient(90deg,#4a8a4a,#6ba94a)}
+.pv-mid{background:linear-gradient(90deg,#9a7a2a,#c9a10a)}
+.pv-bad{background:linear-gradient(90deg,#a33,#d55)}
+.pv-ab-val{flex:0 0 26px;text-align:right;font-weight:700;color:#f0c868}
+.pv-riskb{border:1px solid #a33;background:#3a1a16;color:#f0a0a0;border-radius:6px;padding:4px 8px;font-size:11px;margin:4px 0}
+.pv-branches{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.pv-dim{border:1px solid #8b7355;background:#2a2318;border-radius:8px;padding:7px 9px}
+.pv-dimh{font-weight:700;font-size:12px;color:#f0c868;margin-bottom:5px}
+.pv-btn{width:100%;text-align:left;margin:3px 0;font-size:12px}
+.pv-binfo{font-size:10px;color:#a3926f;margin-bottom:5px;line-height:1.5}
+.pv-lock{display:block;font-size:10px;color:#c0a060;margin-top:2px}
+.pv-srcnote{font-size:10px;color:#8a7d6a;line-height:1.6;margin-top:9px;border-top:1px dashed #4a3d2c;padding-top:5px}
+.pv-wrap{font-size:13px;color:#e8d9b8;line-height:1.6}
+.pv-title{margin-top:10px}
+.pv-note{font-size:11px;color:#a3926f;margin:4px 0 8px}
+.pv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pv-row{border:1px solid #4a3d2c;background:#221b12;border-radius:8px;padding:7px 9px;cursor:pointer;transition:border-color .3s}
+.pv-row:hover{border-color:#c9a96a}
+.pv-row.pv-risk{border-color:#a33;background:#2a1a16}
+.pv-rhead{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.pv-rname{font-weight:700;font-size:13px;color:#f0c868}
+@media (max-width:768px){.pv-branches{grid-template-columns:1fr}.pv-grid{grid-template-columns:repeat(2,1fr)}.pv-btn{text-align:left}}
+@media (max-width:480px){.pv-grid{grid-template-columns:1fr}}
+`;
+function pvInjectStyles() {
+    try {
+        if (typeof document === 'undefined' || !document || !document.head || typeof document.head.appendChild !== 'function') return;
+        if (document.getElementById('pv-styles')) return;
+        var st = document.createElement('style');
+        st.id = 'pv-styles';
+        st.type = 'text/css';
+        try { st.appendChild(document.createTextNode(PV_STYLES)); } catch (e2) { st.textContent = PV_STYLES; }
+        document.head.appendChild(st);
+    } catch (e) {}
+}
+try { pvInjectStyles(); } catch (e) {}
+if (typeof document !== 'undefined' && document) {
+    try {
+        document.addEventListener('DOMContentLoaded', function () { try { pvInjectStyles(); } catch (e) {} });
+    } catch (e) {}
+}

@@ -218,6 +218,12 @@ function expDispatch() {
         };
         pushNews('兵部', `命${sel.gen.name}率师${expRegionName(sel.key)}，调太仓银${sel.silver}、军粮${sel.food}，抽军${sel.troops}。`, 'critical');
         try { DamingSFX.play('urgent'); } catch (e) {}
+        // 批C：出师进阶为战棋/回合制实战——即刻列阵（军需逐合焚烧，反爽游）
+        if (typeof bfStart === 'function') {
+            const r = bfStart({ mode: 'expedition', regionKey: sel.key, regionName: expRegionName(sel.key),
+                                gen: sel.gen, troops: sel.troops, silver: sel.silver, food: sel.food, kind: 'beilu' });
+            if (r && r.ok) { try { bfOpen(); } catch (e) {} }
+        }
         closeExpModal();
         updateUI();
         if (typeof renderPanel === 'function') renderPanel(GameState.currentTab);
@@ -228,6 +234,8 @@ function expDispatch() {
 function checkExpeditionArrival() {
     try {
         if (typeof GameState === 'undefined' || !GameState.mapData || !GameState.mapData.expedition) return null;
+        // 批C：若出师战场尚未由玩家手战收束（未打完即过季），则弃战/按旧例演算兜底
+        if (typeof bfAbandonIfIdle === 'function') bfAbandonIfIdle('expedition');
         const exp = GameState.mapData.expedition;
         GameState.mapData.expedition = null;
         const rname = expRegionName(exp.key);

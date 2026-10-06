@@ -9,8 +9,8 @@ const EVENTS_EXTENSION = [
       options:[{text:'立万氏为后（外戚+3,文-4）',effect:{consort:3,civil:-4}},{text:'另立贤后（外戚-2,稳+1）',effect:{consort:-2,stability:1}}],
       src:'《明史》卷113·后妃传：万贵妃谮废吴后' },
     { title:'郧阳民变', desc:'荆襄流民刘通、石龙聚众反，众至百万。', type:'disaster', script:'chenghua',
-      options:[{text:'命原杰抚治（国库-1000,稳+3）',effect:{treasury:-1000,stability:3}},{text:'调兵剿灭（国库-1500,军力-5）',effect:{treasury:-1500,militaryPower:-5}}],
-      src:'《明史》卷187·原杰传：荆襄民变' },
+      options:[{text:'命原杰抚治（国库-1000,稳+3）',effect:{treasury:-1000,stability:3}},{text:'调兵剿灭（国库-1500,军力-5）',effect:{treasury:-1500,militaryPower:-5}},{text:'发兵征讨（战棋实战）',effect:{treasury:-1000,militaryPower:-4},bf:{kind:'panjun',regionKey:'huguang',regionName:'郧阳',silver:1000,food:300}},],
+      src:'《明史》卷187·原杰传：荆襄民变（批C：平叛转战棋实战）' },
     { title:'汪直巡边', desc:'汪直请巡边，年少喜兵，实欲揽权。', type:'internal', script:'chenghua',
       options:[{text:'准巡（宦+3,国库-500）',effect:{eunuch:3,treasury:-500}},{text:'驳之（宦-2）',effect:{eunuch:-2}}],
       src:'《明史》卷304·汪直传：年少喜兵，请巡边' },
@@ -69,7 +69,7 @@ const EVENTS_EXTENSION = [
       options:[{text:'嘉奖崇焕（威望+3,军力+3）',effect:{prestige:3,militaryPower:3}},{text:'令其乘胜追击（国库-1000）',effect:{treasury:-1000}}],
       src:'《明史》卷259·袁崇焕传：宁远之捷' },
     { title:'奢安之乱', desc:'四川奢崇明、贵州安邦彦同反，西南大震。', type:'disaster', script:'tianqi',
-      options:[{text:'调兵平乱（国库-1500,军力-8）',effect:{treasury:-1500,militaryPower:-8}},{text:'暂守（稳-3）',effect:{stability:-3}}],
+      options:[{text:'调兵平乱（国库-1500,军力-8）',effect:{treasury:-1500,militaryPower:-8}},{text:'暂守（稳-3）',effect:{stability:-3}},{text:'发兵征讨（战棋实战）',effect:{treasury:-1200,militaryPower:-6},bf:{kind:'tusi',regionKey:'sichuan',regionName:'奢安',silver:1200,food:300}}],
       src:'演绎（天启间奢安之乱）' },
 
     // —— 通用事件（不限剧本）——
@@ -98,7 +98,7 @@ const EVENTS_EXTENSION = [
       options:[{text:'减税（商+2,国库-300）',effect:{commerce:2,treasury:-300}},{text:'不减（国库+200,商-1）',effect:{treasury:200,commerce:-1}}],
       src:'演绎' },
     { title:'流民聚啸', desc:'流民数百啸聚山林，渐成盗薮。', type:'disaster', script:'all',
-      options:[{text:'发兵剿捕（国库-500,军力-2）',effect:{treasury:-500,militaryPower:-2}},{text:'招安抚辑（粮-300,稳+1）',effect:{food:-300,stability:1}}],
+      options:[{text:'发兵剿捕（国库-500,军力-2）',effect:{treasury:-500,militaryPower:-2}},{text:'招安抚辑（粮-300,稳+1）',effect:{food:-300,stability:1}},{text:'发兵征讨（战棋实战）',effect:{treasury:-500,militaryPower:-2},bf:{kind:'panjun',regionKey:'huguang',regionName:'流民',silver:500,food:200}}],
       src:'演绎' },
     { title:'火药局灾', desc:'火药局走水，焚毁火药万斤。', type:'disaster', script:'all',
       options:[{text:'拨银再造（国库-400,火药+300）',effect:{treasury:-400,gunpowder:300}},{text:'暂缓（火药-200）',effect:{gunpowder:-200}}],

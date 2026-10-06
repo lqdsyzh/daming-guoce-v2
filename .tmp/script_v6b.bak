@@ -58,33 +58,8 @@ function saveGame() {
             econ: GameState.econ,
             // 批B：主线叙事（山河志）
             mainline: GameState.mainline,
-            // 批B(v6.0·内政深挖)：新政状态随存档链持久化
-            govern: GameState.govern,
             // 批C：战棋/回合制战场状态随存档链持久化
             battlefield: GameState.battlefield,
-            // v6.0 批C：军事战守扩充状态随存档链持久化
-            warDef: GameState.warDef,
-            intrigue: GameState.intrigue, // 批D：权谋（结党/倾轧/阴谋/廷杖流放）
-            // 批E：长线目标体系（王朝使命）随存档链持久化
-            missions: GameState.missions,
-            // 批F：军事科技树（三线研造/战法/冷却）随存档链持久化
-            milTech: GameState.milTech,
-            // 批G：后宫储位与夺嫡（皇嗣/储位/压力/监国）随存档链持久化
-            haremPrince: GameState.haremPrince,
-            // 批H：宗藩制度（藩王/禄米账/负担/削藩）随存档链持久化
-            zongfan: GameState.zongfan,
-            // 批I：科举深化（殿试三鼎甲/座师门生/舞弊案/恩科）随存档链持久化
-            kejuDeep: GameState.kejuDeep,
-            // 批J：省份治理（15布政司素质画像/分支治理/后果链）随存档链持久化
-            province: GameState.province,
-            // 批K：起居注（在位实录/青史留名·v6.5）随存档链持久化
-            qizhuji: GameState.qizhuji,
-            // v6.6 批L-甲：天命系统随存档链持久化
-            tianming: GameState.tianming,
-            // v6.6 批L-乙：皇帝心性养成随存档链持久化
-            xinxing: GameState.xinxing,
-            // v6.6 批L-丙：朝会辩论随存档链持久化
-            chaohui: GameState.chaohui,
             timestamp: Date.now()
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
@@ -160,9 +135,6 @@ function loadGame() {
         GameState.econ = save.econ || ((typeof initEconomyState === 'function') ? initEconomyState() : {});
         // 批B：主线叙事（旧档缺失兜底初始化）
         GameState.mainline = save.mainline || ((typeof initMainline === 'function') ? initMainline() : {});
-        // 批B(v6.0·内政深挖)：新政状态（旧档缺失兜底补默认）
-        GameState.govern = save.govern || ((typeof initGovernState === 'function') ? initGovernState() : {});
-        if (typeof ensureGovernState === 'function') { try { ensureGovernState(); } catch (e) {} }
         // 批C：战场状态（旧档缺失兜底补默认；仅当存档无battlefield时补默认）
         if (save.battlefield) {
             GameState.battlefield = save.battlefield;
@@ -172,43 +144,6 @@ function loadGame() {
         // NOTE: 不在 loadGame 里无参调用 bfAbandonIfIdle（会把刚读回的进行中战斗硬弃）
         // 过季弃战由 checkExpeditionArrival/initGame 按 mode 精准兜底
         if (typeof bfEnsure === 'function') { try { bfEnsure(); } catch (e) {} }
-        // v6.0 批C：军事战守状态（旧档缺失兜底补默认）
-        GameState.warDef = save.warDef || ((typeof initWarDefState === 'function') ? initWarDefState() : {});
-        // 批D：权谋状态兜底（旧档缺失时 init 兜底）
-        GameState.intrigue = save.intrigue || ((typeof initIntrigueState === 'function') ? initIntrigueState() : {});
-        if (typeof ensureIntrigueState === 'function') ensureIntrigueState();
-        if (typeof ensureWarDefState === 'function') { try { ensureWarDefState(); } catch (e) {} }
-        // 批E：长线目标体系（王朝使命）兜底（旧档缺失按当前剧本初始化）
-        GameState.missions = save.missions || ((typeof initMissionsState === 'function') ? initMissionsState() : {});
-        if (typeof ensureMissionsState === 'function') { try { ensureMissionsState(); } catch (e) {} }
-        // 批F：军事科技树兜底（旧档缺失补默认）
-        GameState.milTech = save.milTech || ((typeof initMilTechState === 'function') ? initMilTechState() : {});
-        if (typeof ensureMilTechState === 'function') { try { ensureMilTechState(); } catch (e) {} }
-        if (typeof mtAppendTactics === 'function') { try { mtAppendTactics(); } catch (e) {} }
-        // 批G：后宫储位与夺嫡兜底（旧档缺失补默认 + 子键补齐）
-        GameState.haremPrince = save.haremPrince || ((typeof initHaremPrinceState === 'function') ? initHaremPrinceState() : { princes: [], heirId: null, dispute: 0 });
-        if (typeof hpEnsure === 'function') { try { hpEnsure(); } catch (e) {} }
-        // 批H：宗藩制度兜底（旧档缺失补默认）
-        GameState.zongfan = save.zongfan || ((typeof initZongfanState === 'function') ? initZongfanState() : { vassals: [], fiefBurden: 0, recall: 0 });
-        if (typeof zfEnsure === 'function') { try { zfEnsure(); } catch (e) {} }
-        // 批I：科举深化兜底（旧档缺失补默认 + 子键补齐）
-        GameState.kejuDeep = save.kejuDeep || ((typeof initKejuDeepState === 'function') ? initKejuDeepState() : { topThree: [], mentorship: [], scandal: [], pendingScandal: null, grace: 0, dirt: 0, cd: {}, lastScandalTick: -99, lastTick: -99 });
-        if (typeof kdEnsure === 'function') { try { kdEnsure(); } catch (e) {} }
-        // 批J：省份治理兜底（旧档缺失时按15布政司初始化 + 子键补齐）
-        GameState.province = save.province || ((typeof initProvinceState === 'function') ? initProvinceState() : { prov: {}, pending: [], lastTick: -99 });
-        if (typeof pvEnsure === 'function') { try { pvEnsure(); } catch (e) {} }
-        // 批K：起居注（在位实录/青史留名·v6.5）读档兜底
-        GameState.qizhuji = save.qizhuji || null;
-        if (typeof qzjEnsure === 'function') { try { qzjEnsure(); } catch (e) {} }
-        // v6.6 批L-甲：天命系统读档兜底
-        GameState.tianming = save.tianming || ((typeof tmmInit === 'function') ? (function(){ try { tmmInit(); } catch(e){} return GameState.tianming; })() : null);
-        if (typeof tmmEnsure === 'function') { try { tmmEnsure(); } catch (e) {} }
-        // v6.6 批L-乙：皇帝心性养成读档兜底
-        GameState.xinxing = save.xinxing || ((typeof xxInit === 'function') ? (function(){ try { xxInit(); } catch(e){} return GameState.xinxing; })() : null);
-        if (typeof xxEnsure === 'function') { try { xxEnsure(); } catch (e) {} }
-        // v6.6 批L-丙：朝会辩论读档兜底
-        GameState.chaohui = save.chaohui || ((typeof chInit === 'function') ? (function(){ try { chInit(); } catch(e){} return GameState.chaohui; })() : null);
-        if (typeof chEnsure === 'function') { try { chEnsure(); } catch (e) {} }
         GameState.yearNews = [];
         GameState.yearEndPending = false;
         GameState.gameOver = false;
@@ -335,34 +270,8 @@ function initGame(scriptId) {
         if (typeof initEconomyState === 'function') GameState.econ = initEconomyState();
         // 批B：主线叙事（山河志）
         if (typeof initMainline === 'function') GameState.mainline = initMainline();
-        // 批B(v6.0·内政深挖)：新政状态初始化
-        if (typeof initGovernState === 'function') GameState.govern = initGovernState();
         // 批C：战场状态兜底初始化（开局无战事）
         GameState.battlefield = (typeof initBattlefieldState === 'function') ? initBattlefieldState() : {};
-        // v6.0 批C：军事战守状态初始化
-        if (typeof initWarDefState === 'function') GameState.warDef = initWarDefState();
-        // v6.0 批D：权谋状态初始化（结党/倾轧/阴谋/廷杖流放记录）
-        if (typeof initIntrigueState === 'function') GameState.intrigue = initIntrigueState();
-        // v6.0 批E：长线目标（王朝使命）初始化
-        if (typeof initMissionsState === 'function') GameState.missions = initMissionsState();
-        // 批F：军事科技树初始化
-        if (typeof initMilTechState === 'function') GameState.milTech = initMilTechState();
-        // 批G：后宫储位与夺嫡初始化
-        if (typeof initHaremPrinceState === 'function') GameState.haremPrince = initHaremPrinceState();
-        // 批H：宗藩制度初始化
-        if (typeof initZongfanState === 'function') GameState.zongfan = initZongfanState();
-        // 批I：科举深化初始化
-        if (typeof initKejuDeepState === 'function') GameState.kejuDeep = initKejuDeepState();
-        // 批J：省份治理（15布政司素质画像）初始化
-        if (typeof initProvinceState === 'function') GameState.province = initProvinceState();
-        // 批K：起居注（在位实录/青史留名·v6.5）开局初始化
-        if (typeof qzjInit === 'function') { try { qzjInit(); } catch (e) {} }
-        // v6.6 批L-甲：天命系统开局初始化
-        if (typeof tmmInit === 'function') { try { tmmInit(); } catch (e) {} }
-        // v6.6 批L-乙：皇帝心性养成开局初始化
-        if (typeof xxInit === 'function') { try { xxInit(); } catch (e) {} }
-        // v6.6 批L-丙：朝会辩论开局初始化
-        if (typeof chInit === 'function') { try { chInit(); } catch (e) {} }
     } catch (e) {}
 
     document.getElementById('script-modal').classList.remove('active');
@@ -464,52 +373,8 @@ function advanceSeason() {
     // 批A：经济巡检（物价季动/市面萧条/景气/市舶积祸）
     try { economyTick(); } catch (e) {}
 
-    // 批B(v6.0)：内政新政巡检（新政季结/冷却衰减/民变审查）
-    try { governTick(); } catch (e) {}
-
-    // v6.0 批C：军事战守巡检（粮道/兵源生息/边患滋生/驻军耗饷/京营整顿冷却）
-    try { warDefTick(); } catch (e) {}
-
-    // 批F：军事科技树巡检（研究冷却衰减/战法注入保持）
-    try { milTechTick(); } catch (e) {}
-    try { mtAppendTactics(); } catch (e) {}
-
-    // 批G：后宫储位与夺嫡巡检（皇子成长/国本稳固/夺嫡压力与监国考核）
-    try { hpGrowTick(); } catch (e) {}
-    try { hpDisputeTick(); } catch (e) {}
-
-    // 批H：宗藩制度巡检（禄米随藩数与世代膨胀/负担承压）
-    try { zfBurdenTick(); } catch (e) {}
-
-    // 批I：科举深化巡检（舞弊案按科举舞弊记录确定性败露）
-    try { kdTick(); } catch (e) {}
-
-    // 批J：省份治理巡检（省际后果链：吏治侵蚀/民变/边患镇抚/富民税益/延迟生效）
-    try { pvProvinceTick(); } catch (e) {}
-
-    // 批K：起居注巡检（在位实录/史评沉淀·v6.5）
-    try { qzjTick(); } catch (e) {}
-
-    // v6.6 批L-甲：天命巡检（每季气运漂移/赐福祸患计数）
-    try { tmmTick(); } catch (e) {}
-
-    // v6.6 批L-乙：心性巡检（巡检占位，留接口）
-    try { xxTick(); } catch (e) {}
-
-    // v6.6 批L-丙：朝会巡检（每季首月派生一个待决议题）
-    try { chTick(); } catch (e) {}
-
-    // 批D：权谋巡检（结党/党势生息/阴谋酝酿与暴露/朋党倾轧）
-    try { intrigueTick(); } catch (e) {}
-
-    // 批E：长线目标（王朝使命）巡检——达成判定 + 发奖
-    try { missionsTick(); } catch (e) {}
-
     // 批B：主线巡检（山河志节点到期则优先呈现并停止当季随机事件）
     try { if (mainlineTick()) return; } catch (e) {}
-
-    // 批D：权谋裁决优先（朋党倾轧/阴谋暴露当场示下，停当季随机事件待圣断）
-    try { if (typeof intrigueDecisionPending === 'function' && intrigueDecisionPending()) { openIntrigueDecision(); return; } } catch (e) {}
 
     // 批3：待发事件（和解彩蛋/厂卫反噬/内帑枯竭）与出师战报（急奏样式）优先呈现
     let queuedEv = null;
@@ -1056,8 +921,6 @@ function triggerEnding(type) {
     try { if (typeof renderEndLegacy === 'function') renderEndLegacy(type); } catch (e) {}
     // 批B：主线结局「山河志」章节（与既有结局并存）
     try { if (typeof renderMainlineEnding === 'function') renderMainlineEnding(); } catch (e) {}
-    // 批E：王朝使命收官「王朝评价」追加（与山河志并存）
-    try { if (typeof renderMissionEnding === 'function') renderMissionEnding(); } catch (e) {}
 
     pushNews('史官', `陛下在位，决事 ${GameState.decisionsCount} 次。`, 'normal');
     
