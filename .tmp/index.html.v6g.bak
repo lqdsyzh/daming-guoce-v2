@@ -59,19 +59,12 @@
             <div class="menu-tab" data-tab="prince">藩</div>
             <div class="menu-tab" data-tab="selection">铨</div>
             <div class="menu-tab" data-tab="tribute">贡</div>
-            <div class="menu-tab" data-tab="zongfan">宗</div>
             <div class="menu-tab" data-tab="famine">荒</div>
             <div class="menu-tab" data-tab="emperor">帝</div>
             <div class="menu-tab" data-tab="share">分</div>
             <div class="menu-tab" data-tab="compare">比</div>
             <!-- 批E：王朝使命 -->
             <div class="menu-tab" data-tab="mission">命</div>
-            <!-- v6.6 批L-甲：天命 -->
-            <div class="menu-tab" data-tab="tianming">天</div>
-            <!-- v6.6 批L-乙：心性 -->
-            <div class="menu-tab" data-tab="xinxing">性</div>
-            <!-- v6.6 批L-丙：朝会 -->
-            <div class="menu-tab" data-tab="chaohui">议</div>
         </div>
     </nav>
 
@@ -269,8 +262,6 @@
         <div class="map-cell-desc" id="map-cell-desc"></div>
         <div class="map-cell-cool" id="map-cell-cool"></div>
         <div class="map-cell-actions" id="map-cell-actions"></div>
-        <!-- 批J(v6.3)：省份治细务（省画像+分支治理），运行时注入 -->
-        <div class="pv-zone" id="pv-zone"></div>
     </div>
 </div>
 
@@ -372,9 +363,6 @@
 <script src="script.js"></script>
 <!-- 批2：舆图 + 召见（置于主入口之后、DOMContentLoaded 触发前完成加载） -->
 <script src="map.js"></script>
-<script src="map_v67.js"></script>
-<!-- 批J(v6.3)：省份治理深挖（每省素质画像+分支治理，置于 map.js 之后） -->
-<script src="map_province.js"></script>
 <script src="daming_talk.js"></script>
 <!-- 批3：厂卫内帑 + 辽东出征（置于主入口之后、DOMContentLoaded 触发前完成加载） -->
 <script src="cangwei.js"></script>
@@ -387,8 +375,6 @@
 <script src="harem_interact.js"></script>
 <script src="diplomacy_interact.js"></script>
 <script src="keju.js"></script>
-<!-- 批I：科举深化（殿试/座师门生/舞弊/恩科） -->
-<script src="keju_deep.js"></script>
 <script src="yingzao.js"></script>
 <!-- 批5·纵深扩展 -->
 <script src="military_ops_ext.js"></script>
@@ -413,14 +399,6 @@
 <!-- 批D：权谋系统（结党/朋党倾轧/阴谋暴露/廷杖流放贬谪） -->
 <script src="intrigue.js"></script>
 <script src="missions.js"></script>
-<script src="harem_prince.js"></script>
-<!-- 批H：宗藩制度（禄米黑洞/削减/削藩·全新系统） -->
-<script src="zongfan.js"></script>
-<!-- 批K：起居注（在位实录/青史留名·v6.5） -->
-<script src="qiuzhuji.js"></script>
-<script src="tianming.js"></script>
-<script src="xinxing.js"></script>
-<script src="chaohui.js"></script>
 
 <script>
 if ('serviceWorker' in navigator) {

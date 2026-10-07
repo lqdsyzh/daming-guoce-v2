@@ -29,7 +29,7 @@ function renderPanel(tab) {
         case 'tech':        html = renderSolarRituals() + (typeof renderLizhiTab === 'function' ? renderLizhiTab() : '') + (typeof renderAutoTab === 'function' ? renderAutoTab() : ''); break;
         case 'decade':      html = renderDecade(); break;
         case 'yearend':     html = (typeof renderYearendTab === 'function') ? renderYearendTab() : ''; break;
-        case 'map':         html = (typeof renderMapV67Tab === 'function') ? renderMapV67Tab() : ((typeof renderMapTab === 'function') ? renderMapTab() : ''); break; // v6.7 批M：山河全舆图（SVG手绘）
+        case 'map':         html = (typeof renderMapTab === 'function') ? renderMapTab() : ''; break;
         case 'markets':     html = (typeof renderMarketV5 === 'function') ? renderMarketV5() : renderMarketPrices(); break;
         case 'censor':      html = renderCensor(); break;
         case 'secret':      html = (typeof renderCangweiTab === 'function') ? renderCangweiTab() : renderSecretService(); break; // 批3：厂卫面板
@@ -43,43 +43,13 @@ function renderPanel(tab) {
         case 'share':       html = renderShare(); break;
         case 'compare':     html = renderCompare(); break;
         case 'mission':     html = (typeof renderMissionTab === 'function') ? renderMissionTab() : ''; break; // v6.0 批E：王朝使命看板
-        case 'tianming':    html = (typeof renderTianmingTab === 'function') ? renderTianmingTab() : ''; break; // v6.6 批L-甲：天命（王朝气数）
-        case 'xinxing':     html = (typeof renderXinxingTab === 'function') ? renderXinxingTab() : ''; break; // v6.6 批L-乙：心性（仁严勇谋）
-        case 'chaohui':     html = (typeof renderChaohuiTab === 'function') ? renderChaohuiTab() : ''; break; // v6.6 批L-丙：朝会（派系折衷）
     }
     
     // 统一写入 DOM（修复 v3.2 share/compare 渲染 bug）
     if (html && !isDirectlyWrittenTab(tab)) {
         panel.innerHTML = html;
     }
-    // v6.4 收敛：记录当前tab到body，供CSS按需压缩中央季节横幅（只放首页完整显示，其他页折叠）
-    try { document.body.dataset.tab = tab || ''; if (typeof v7CozyInject==='function') v7CozyInject(); } catch (e) {}
     syncMenuTabActive(tab);
-}
-
-// v6.4：运行时注入"季节横幅收敛"样式（非首页折叠，首页/概览完整）。不追加style.css末尾，避免压跨v5d G-06硬关断言
-// v6.5：升级为"国事区独占首页"——非 overview 时整个中央国事区（横幅+政事+已决）让位，功能面板独占中列，达到"主界面只放首页、其他功能页清爽"
-function v7CozyInject() {
-    try {
-        if (window._v7CozyInjected) return;
-        window._v7CozyInjected = true;
-        var st = document.createElement('style');
-        st.id = 'v7-cozy-inline';
-        st.textContent =
-            // 首页/无tab（初始）时国事区完整显示
-            'body[data-tab="overview"] #edict-zone,body[data-tab=""] #edict-zone{display:block;}' +
-            'body[data-tab="overview"] #edict-history-zone,body[data-tab=""] #edict-history-zone{display:block;}' +
-            // 其他功能页：国事主区整体让位（display:none），功能面板独占中列
-            'body:not([data-tab="overview"]):not([data-tab=""]) #edict-zone{display:none;}' +
-            'body:not([data-tab="overview"]):not([data-tab=""]) #edict-history-zone{display:none;}' +
-            // 遗留兼容：横幅折叠（若国事区曾被强制显示，仍收敛横幅）
-            'body:not([data-tab="overview"]):not([data-tab=""]) #season-banner .season-name{display:none;}' +
-            'body:not([data-tab="overview"]):not([data-tab=""]) #season-banner{padding:3px 0;margin-bottom:4px;}' +
-            'body:not([data-tab="overview"]):not([data-tab=""]) #season-banner .season-status{font-size:11px;}' +
-            // 首页时中央国事区与功能面板分栏排布，不塌陷
-            'body[data-tab="overview"] #center-panel{margin-top:0;}';
-        document.head.appendChild(st);
-    } catch (e) {}
 }
 
 // v6.0 批A：渲染后同步左侧菜单 active，保证下钻/载档后选中态一致（不触碰 edict 永久DOM）

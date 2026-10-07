@@ -55,23 +55,13 @@
             <div class="menu-tab" data-tab="markets">市</div>
             <div class="menu-tab" data-tab="censor">宪</div>
             <div class="menu-tab" data-tab="secret">卫</div>
-            <div class="menu-tab" data-tab="intrigue">权</div>
             <div class="menu-tab" data-tab="prince">藩</div>
             <div class="menu-tab" data-tab="selection">铨</div>
             <div class="menu-tab" data-tab="tribute">贡</div>
-            <div class="menu-tab" data-tab="zongfan">宗</div>
             <div class="menu-tab" data-tab="famine">荒</div>
             <div class="menu-tab" data-tab="emperor">帝</div>
             <div class="menu-tab" data-tab="share">分</div>
             <div class="menu-tab" data-tab="compare">比</div>
-            <!-- 批E：王朝使命 -->
-            <div class="menu-tab" data-tab="mission">命</div>
-            <!-- v6.6 批L-甲：天命 -->
-            <div class="menu-tab" data-tab="tianming">天</div>
-            <!-- v6.6 批L-乙：心性 -->
-            <div class="menu-tab" data-tab="xinxing">性</div>
-            <!-- v6.6 批L-丙：朝会 -->
-            <div class="menu-tab" data-tab="chaohui">议</div>
         </div>
     </nav>
 
@@ -269,8 +259,6 @@
         <div class="map-cell-desc" id="map-cell-desc"></div>
         <div class="map-cell-cool" id="map-cell-cool"></div>
         <div class="map-cell-actions" id="map-cell-actions"></div>
-        <!-- 批J(v6.3)：省份治细务（省画像+分支治理），运行时注入 -->
-        <div class="pv-zone" id="pv-zone"></div>
     </div>
 </div>
 
@@ -340,16 +328,6 @@
         <!-- 动态渲染 -->
     </div>
 </div>
-<!-- 批D：权谋裁决浮层（朋党倾轧/阴谋暴露/廷杖流放贬谪） -->
-<div class="cw-modal" id="intrigue-modal">
-    <div class="cw-modal-paper" id="intrigue-paper">
-        <h3 class="cw-modal-title" id="intrigue-title">权谋裁决</h3>
-        <div class="cw-modal-body" id="intrigue-desc"></div>
-        <div class="cw-modal-src cw-dim" id="intrigue-src"></div>
-        <div class="cw-modal-body" id="intrigue-opts"></div>
-        <button class="cw-btn cw-modal-close" onclick="closeIntrigueModal()">暂缓</button>
-    </div>
-</div>
 
 <script src="data/script.js"></script>
 <script src="data/systems.js"></script>
@@ -372,9 +350,6 @@
 <script src="script.js"></script>
 <!-- 批2：舆图 + 召见（置于主入口之后、DOMContentLoaded 触发前完成加载） -->
 <script src="map.js"></script>
-<script src="map_v67.js"></script>
-<!-- 批J(v6.3)：省份治理深挖（每省素质画像+分支治理，置于 map.js 之后） -->
-<script src="map_province.js"></script>
 <script src="daming_talk.js"></script>
 <!-- 批3：厂卫内帑 + 辽东出征（置于主入口之后、DOMContentLoaded 触发前完成加载） -->
 <script src="cangwei.js"></script>
@@ -387,8 +362,6 @@
 <script src="harem_interact.js"></script>
 <script src="diplomacy_interact.js"></script>
 <script src="keju.js"></script>
-<!-- 批I：科举深化（殿试/座师门生/舞弊/恩科） -->
-<script src="keju_deep.js"></script>
 <script src="yingzao.js"></script>
 <!-- 批5·纵深扩展 -->
 <script src="military_ops_ext.js"></script>
@@ -404,23 +377,8 @@
 <!-- 批B：主线叙事（山河志，四剧本专属主线链+关键节点+专属结局） -->
 <script src="mainline.js"></script>
 <script src="battlefield.js"></script>
-<!-- 批C(v6.0)：军事战守扩充（新兵种/边患战/粮道兵源/军功） -->
-<script src="military_war_def.js"></script>
-<!-- 批F(v6.1)：军事科技树深挖（三线研造/战法/新兵种） -->
-<script src="military_tech_ext.js"></script>
 <!-- 批D：界面/立绘升级（收官） -->
 <script src="v5d_ui.js"></script>
-<!-- 批D：权谋系统（结党/朋党倾轧/阴谋暴露/廷杖流放贬谪） -->
-<script src="intrigue.js"></script>
-<script src="missions.js"></script>
-<script src="harem_prince.js"></script>
-<!-- 批H：宗藩制度（禄米黑洞/削减/削藩·全新系统） -->
-<script src="zongfan.js"></script>
-<!-- 批K：起居注（在位实录/青史留名·v6.5） -->
-<script src="qiuzhuji.js"></script>
-<script src="tianming.js"></script>
-<script src="xinxing.js"></script>
-<script src="chaohui.js"></script>
 
 <script>
 if ('serviceWorker' in navigator) {

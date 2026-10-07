@@ -1,5 +1,5 @@
 /* ============== 汉代美学风格 ============== */
-/* 字体已本地化：不使用在线字体加载，完全离线运行 */
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
 
 :root {
     --bg-dark: #1a1410;
@@ -3915,42 +3915,3 @@ body {
 .zf-mgmt{margin-top:8px;border-top:1px dashed #d9c39a;padding-top:8px}.zf-mgmt-row{display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap}.zf-hint-inline{font-size:11px;color:#a67}
 .zf-empty{color:#8a7a5a;font-size:12px;padding:10px}.zf-hint{font-size:11px;color:#8a7a5a;line-height:1.7;margin-top:8px;border-top:1px dashed #e0d2b0;padding-top:6px}.zf-src{font-size:11px;color:#9a8a6a;margin-top:4px;line-height:1.5}
 @media (max-width:720px){.zf-summary{flex-wrap:wrap;gap:10px}.zf-v-row{padding:8px}.zf-vact,.zf-mgmt-row{flex-direction:column;align-items:stretch}.zf-btn{text-align:left}.zf-revolt{flex-direction:column;align-items:stretch}}
-
-/* ========== v6.7 大明山河全舆图（批M·SVG 精确绘制·大改版） ========== */
-.map-svg-wrap{width:100%;background:linear-gradient(135deg,#3E2723 0%,#5D4037 50%,#3E2723 100%);border:3px double #FFD700;border-radius:12px;padding:20px;margin:8px 0;box-shadow:0 4px 12px rgba(0,0,0,0.8),inset 0 0 20px rgba(0,0,0,0.6)}
-.map-svg{display:block;width:100%;height:auto;max-height:720px;border-radius:8px;background:#2E1B0F}
-.map-svg text{user-select:none;pointer-events:none}
-.map-svg .map-v67-region{transition:all 0.3s ease}
-.map-svg .map-v67-region:hover circle{stroke-width:4;filter:brightness(1.4) drop-shadow(0 0 8px rgba(255,215,0,0.8))}
-.map-svg .map-v67-city circle{transition:r 0.3s ease}
-.map-svg .map-v67-city:hover circle{r:8;filter:drop-shadow(0 0 6px rgba(255,215,0,1))}
-.map-svg polygon:hover{fill:#8D6E63}
-.map-legend{display:flex;align-items:center;gap:14px;font-size:12px;color:#FFD700;margin:8px 0;flex-wrap:wrap;font-weight:bold}
-
-/* v6.7 界面大改：减少中间空白 */
-.main-content {
-    min-height: auto;
-    gap: 6px;
-}
-.center-panel {
-    padding: 14px 16px;
-    max-height: calc(100vh - 110px);
-}
-.left-panel, .right-panel {
-    max-height: calc(100vh - 110px);
-    padding: 10px;
-}
-.edict-paper {
-    padding: 10px;
-    margin-bottom: 10px;
-}
-.edict-zone {
-    margin-bottom: 6px;
-}
-.edict-history {
-    margin-top: 6px;
-    padding-top: 8px;
-}
-.history-list {
-    max-height: 160px;
-}
