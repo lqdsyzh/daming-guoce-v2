@@ -470,6 +470,9 @@ function advanceSeason() {
     // v6.0 批C：军事战守巡检（粮道/兵源生息/边患滋生/驻军耗饷/京营整顿冷却）
     try { warDefTick(); } catch (e) {}
 
+    // v6.8 批N：边患推进巡检（敌军沿路北上、逼近京畿削威望）
+    try { if (typeof v68ThreatPush === 'function') v68ThreatPush(); } catch (e) {}
+
     // 批F：军事科技树巡检（研究冷却衰减/战法注入保持）
     try { milTechTick(); } catch (e) {}
     try { mtAppendTactics(); } catch (e) {}

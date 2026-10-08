@@ -3954,3 +3954,66 @@ body {
 .history-list {
     max-height: 160px;
 }
+
+/* ===== v6.8 批N：山河战图（边患虚实 + 敌军压境） ===== */
+.map-v68-province:hover rect,
+.map-v68-province:hover polygon {
+    filter: brightness(1.5) drop-shadow(0 0 8px rgba(255,215,0,0.9));
+    stroke-width: 3;
+}
+/* 敌军红旗脉冲警示 */
+@keyframes map-v68-pulse {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.45; }
+    100% { opacity: 1; }
+}
+.map-v68-threat-flag {
+    animation: map-v68-pulse 1s ease-in-out infinite;
+}
+.map-v68-threat:hover .map-v68-threat-flag {
+    filter: drop-shadow(0 0 10px rgba(229,57,53,0.95));
+}
+/* 王师蓝旗慢闪 */
+.map-v68-exp-flag {
+    animation: map-v68-pulse 1.6s ease-in-out infinite;
+}
+/* 敌军压境警示块 */
+.v68-threat-warn {
+    margin: 8px 0 10px;
+    padding: 10px 12px;
+    background: rgba(211, 47, 47, 0.12);
+    border: 1px solid var(--accent-red);
+    border-left: 4px solid var(--accent-red);
+    border-radius: 4px;
+}
+.v68-threat-warn-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 15px;
+    color: var(--accent-red);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+.v68-threat-warn-desc {
+    font-size: 12px;
+    color: var(--ink);
+    line-height: 1.6;
+}
+.v68-strike-btn {
+    width: 100%;
+    margin-top: 4px;
+}
+/* 图例旗帜标记 */
+.map-legend-flag {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 7px solid #E53935;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    vertical-align: middle;
+    margin-right: 4px;
+    margin-left: 8px;
+}
+.map-legend-flag.map-legend-blue {
+    border-left-color: #42A5F5;
+}

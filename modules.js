@@ -29,7 +29,7 @@ function renderPanel(tab) {
         case 'tech':        html = renderSolarRituals() + (typeof renderLizhiTab === 'function' ? renderLizhiTab() : '') + (typeof renderAutoTab === 'function' ? renderAutoTab() : ''); break;
         case 'decade':      html = renderDecade(); break;
         case 'yearend':     html = (typeof renderYearendTab === 'function') ? renderYearendTab() : ''; break;
-        case 'map':         html = (typeof renderMapV67Tab === 'function') ? renderMapV67Tab() : ((typeof renderMapTab === 'function') ? renderMapTab() : ''); break; // v6.7 批M：山河全舆图（SVG手绘）
+        case 'map':         html = (typeof renderMapV68Tab === 'function') ? renderMapV68Tab() : ((typeof renderMapV67Tab === 'function') ? renderMapV67Tab() : ((typeof renderMapTab === 'function') ? renderMapTab() : '')); break; // v6.8 批N：山河战图（疆域区块+边患虚实）
         case 'markets':     html = (typeof renderMarketV5 === 'function') ? renderMarketV5() : renderMarketPrices(); break;
         case 'censor':      html = renderCensor(); break;
         case 'secret':      html = (typeof renderCangweiTab === 'function') ? renderCangweiTab() : renderSecretService(); break; // 批3：厂卫面板
