@@ -18,6 +18,8 @@ function initMilOpsState() {
         ying: { shenji: 0, sanqian: 0, shensu: 0 },
         // 挂帅校尉（需名将）
         marshal: null,
+        // 挂帅将领将略（影响整饬成败，将星录 v7.0）
+        marshalAbility: 70,
         // 火器研造等级：0无 1鸟铳 2佛郎机 3红衣大炮
         firearms: 0,
         // 研究院（营造线）层数

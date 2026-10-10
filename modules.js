@@ -19,7 +19,7 @@ function renderPanel(tab) {
         case 'construction':html = renderConstruction(); break;
         case 'diplomacy':   html = renderDiplomacy() + (typeof renderDiploInteractTab === 'function' ? renderDiploInteractTab() : ''); break;
         case 'finance':     html = renderHuBuDetail(); break;
-        case 'military':    html = renderMilitaryOps() + (typeof renderMilitaryOpsExt === 'function' ? renderMilitaryOpsExt() : '') + (typeof renderWarDefTab === 'function' ? renderWarDefTab() : '') + (typeof renderMilTechTab === 'function' ? renderMilTechTab() : ''); break;
+        case 'military':    html = renderMilitaryOps() + (typeof renderMilitaryOpsExt === 'function' ? renderMilitaryOpsExt() : '') + (typeof renderWarDefTab === 'function' ? renderWarDefTab() : '') + (typeof renderMilTechTab === 'function' ? renderMilTechTab() : '') + (typeof renderGenerals === 'function' ? renderGenerals() : ''); break;
         case 'transport':   html = renderWaterSystem(); break;
         case 'prison':      html = renderSecretService(); break;
         case 'harem':       html = renderPalaceStaff() + (typeof renderHaremInteractTab === 'function' ? renderHaremInteractTab() : '') + (typeof renderHaremPrinceTab === 'function' ? renderHaremPrinceTab() : ''); break;

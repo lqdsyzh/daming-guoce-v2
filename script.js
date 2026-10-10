@@ -85,6 +85,8 @@ function saveGame() {
             xinxing: GameState.xinxing,
             // v6.6 批L-丙：朝会辩论随存档链持久化
             chaohui: GameState.chaohui,
+            // v7.0 批P：将星录（军事将领）随存档链持久化
+            generals: GameState.generals,
             timestamp: Date.now()
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
@@ -209,6 +211,9 @@ function loadGame() {
         // v6.6 批L-丙：朝会辩论读档兜底
         GameState.chaohui = save.chaohui || ((typeof chInit === 'function') ? (function(){ try { chInit(); } catch(e){} return GameState.chaohui; })() : null);
         if (typeof chEnsure === 'function') { try { chEnsure(); } catch (e) {} }
+        // v7.0 批P：将星录读档兜底（旧档缺失按当前剧本初始化）
+        GameState.generals = save.generals || ((typeof initGeneralsState === 'function') ? initGeneralsState() : null);
+        if (typeof ensureGeneralsState === 'function') { try { ensureGeneralsState(); } catch (e) {} }
         GameState.yearNews = [];
         GameState.yearEndPending = false;
         GameState.gameOver = false;
@@ -272,7 +277,8 @@ const GameState = {
     wonders: [],
     nations: {},
     currentTab: 'overview',
-    impeachmentQueue: []
+    impeachmentQueue: [],
+    generals: null
 };
 
 // ====== 初始化 ======
@@ -341,6 +347,8 @@ function initGame(scriptId) {
         GameState.battlefield = (typeof initBattlefieldState === 'function') ? initBattlefieldState() : {};
         // v6.0 批C：军事战守状态初始化
         if (typeof initWarDefState === 'function') GameState.warDef = initWarDefState();
+        // v7.0 批P：将星录（军事将领体系）初始化
+        if (typeof initGeneralsState === 'function') GameState.generals = initGeneralsState();
         // v6.0 批D：权谋状态初始化（结党/倾轧/阴谋/廷杖流放记录）
         if (typeof initIntrigueState === 'function') GameState.intrigue = initIntrigueState();
         // v6.0 批E：长线目标（王朝使命）初始化
@@ -507,6 +515,9 @@ function advanceSeason() {
 
     // 批E：长线目标（王朝使命）巡检——达成判定 + 发奖
     try { missionsTick(); } catch (e) {}
+
+    // v7.0 批P：将星录巡检（忠诚漂移/反叛/衰病谢世）
+    try { if (typeof genTick === 'function') genTick(); } catch (e) {}
 
     // 批B：主线巡检（山河志节点到期则优先呈现并停止当季随机事件）
     try { if (mainlineTick()) return; } catch (e) {}
