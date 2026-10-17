@@ -13,7 +13,7 @@ import datetime
 
 WORK = pathlib.Path('/Coze/Drive/扣子/daming-guoce')
 OUT_HTML = WORK / 'daming-guoce-standalone.html'
-OUT_ZIP = WORK / 'daming-guoce-v68.zip'
+OUT_ZIP = WORK / 'daming-guoce-v70.zip'
 
 # ---------- 1. 生成 standalone ----------
 html = (WORK / 'index.html').read_text(encoding='utf-8')

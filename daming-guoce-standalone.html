@@ -8999,7 +8999,7 @@ function renderPanel(tab) {
         case 'construction':html = renderConstruction(); break;
         case 'diplomacy':   html = renderDiplomacy() + (typeof renderDiploInteractTab === 'function' ? renderDiploInteractTab() : ''); break;
         case 'finance':     html = renderHuBuDetail(); break;
-        case 'military':    html = renderMilitaryOps() + (typeof renderMilitaryOpsExt === 'function' ? renderMilitaryOpsExt() : '') + (typeof renderWarDefTab === 'function' ? renderWarDefTab() : '') + (typeof renderMilTechTab === 'function' ? renderMilTechTab() : ''); break;
+        case 'military':    html = renderMilitaryOps() + (typeof renderMilitaryOpsExt === 'function' ? renderMilitaryOpsExt() : '') + (typeof renderWarDefTab === 'function' ? renderWarDefTab() : '') + (typeof renderMilTechTab === 'function' ? renderMilTechTab() : '') + (typeof renderGenerals === 'function' ? renderGenerals() : ''); break;
         case 'transport':   html = renderWaterSystem(); break;
         case 'prison':      html = renderSecretService(); break;
         case 'harem':       html = renderPalaceStaff() + (typeof renderHaremInteractTab === 'function' ? renderHaremInteractTab() : '') + (typeof renderHaremPrinceTab === 'function' ? renderHaremPrinceTab() : ''); break;
@@ -11170,6 +11170,8 @@ function saveGame() {
             xinxing: GameState.xinxing,
             // v6.6 批L-丙：朝会辩论随存档链持久化
             chaohui: GameState.chaohui,
+            // v7.0 批P：将星录（军事将领）随存档链持久化
+            generals: GameState.generals,
             timestamp: Date.now()
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
@@ -11294,6 +11296,9 @@ function loadGame() {
         // v6.6 批L-丙：朝会辩论读档兜底
         GameState.chaohui = save.chaohui || ((typeof chInit === 'function') ? (function(){ try { chInit(); } catch(e){} return GameState.chaohui; })() : null);
         if (typeof chEnsure === 'function') { try { chEnsure(); } catch (e) {} }
+        // v7.0 批P：将星录读档兜底（旧档缺失按当前剧本初始化）
+        GameState.generals = save.generals || ((typeof initGeneralsState === 'function') ? initGeneralsState() : null);
+        if (typeof ensureGeneralsState === 'function') { try { ensureGeneralsState(); } catch (e) {} }
         GameState.yearNews = [];
         GameState.yearEndPending = false;
         GameState.gameOver = false;
@@ -11357,7 +11362,8 @@ const GameState = {
     wonders: [],
     nations: {},
     currentTab: 'overview',
-    impeachmentQueue: []
+    impeachmentQueue: [],
+    generals: null
 };
 
 // ====== 初始化 ======
@@ -11426,6 +11432,8 @@ function initGame(scriptId) {
         GameState.battlefield = (typeof initBattlefieldState === 'function') ? initBattlefieldState() : {};
         // v6.0 批C：军事战守状态初始化
         if (typeof initWarDefState === 'function') GameState.warDef = initWarDefState();
+        // v7.0 批P：将星录（军事将领体系）初始化
+        if (typeof initGeneralsState === 'function') GameState.generals = initGeneralsState();
         // v6.0 批D：权谋状态初始化（结党/倾轧/阴谋/廷杖流放记录）
         if (typeof initIntrigueState === 'function') GameState.intrigue = initIntrigueState();
         // v6.0 批E：长线目标（王朝使命）初始化
@@ -11592,6 +11600,9 @@ function advanceSeason() {
 
     // 批E：长线目标（王朝使命）巡检——达成判定 + 发奖
     try { missionsTick(); } catch (e) {}
+
+    // v7.0 批P：将星录巡检（忠诚漂移/反叛/衰病谢世）
+    try { if (typeof genTick === 'function') genTick(); } catch (e) {}
 
     // 批B：主线巡检（山河志节点到期则优先呈现并停止当季随机事件）
     try { if (mainlineTick()) return; } catch (e) {}
@@ -13680,6 +13691,360 @@ function v68StrikeThreat(threatKey) {
 })();
 
 console.log('✓ 批N·山河战图（疆域区块 + 边患虚实 + 敌军压境）加载完成');
+</script>
+<!-- 批O(v6.9)：真舆图（真实历史疆域矢量数据 + 地理坐标纠正 + 真实疆域渲染） -->
+<script>
+// ============================================================
+// 《大明国策》v6.9 批O · 真舆图（geo_ming.js）
+// 数据源：historical-basemaps (aourednik, GitHub, CC-BY-SA 4.0)
+//         world_1600.geojson —— 1600 年（万历朝）真实历史疆域矢量
+// 投影：等距圆柱 lon[96,131]→x[0,1000]、lat[15,45]→y[600,0]（北小南大）
+// 大明疆域 + 8 邻国为真实矢量多边形（Sutherland-Hodgman 按经纬度矩形裁剪）
+// 城市/布政司/长城/河流/山脉/沙漠 均按真实经纬度重投影，替换 v6.7 手绘坐标
+// ============================================================
+
+const GEO_MING_PROJ = { lon0:96, lon1:131, lat0:15, lat1:45, w:1000, h:600 };
+function geoMingProject(lon, lat) {
+    return [(lon - 96) / 35 * 1000, (45 - lat) / 30 * 600];
+}
+
+// 大明疆域（真实矢量，3 块 polygon，裁剪投影后）
+const MING_TERRITORY_REAL = [
+    "M515.6,453.2 L515.2,453.8 L514.9,455.4 L514.0,455.7 L513.0,455.3 L512.3,455.9 L511.5,455.6 L510.5,456.1 L509.6,455.7 L510.2,454.8 L511.5,454.2 L512.8,453.9 L515.6,453.2 Z",
+    "M516.7,449.4 L519.0,448.8 L520.5,449.0 L523.1,448.9 L524.5,449.9 L526.1,451.3 L525.7,452.1 L523.7,454.6 L521.7,455.6 L521.8,455.9 L520.9,455.6 L520.5,456.2 L520.2,455.6 L518.1,456.6 L517.1,455.7 L517.9,454.9 L517.6,454.4 L518.7,454.0 L518.9,453.7 L518.4,453.4 L517.2,453.4 L516.8,452.8 L514.5,452.6 L512.8,452.7 L512.2,452.7 L511.5,451.9 L513.7,450.6 L515.5,450.0 L515.1,449.8 L516.7,449.4 Z",
+    "M82.7,434.1 L72.2,417.0 L56.6,376.9 L63.3,349.1 L67.0,349.4 L73.5,349.2 L75.3,350.4 L133.8,326.2 L183.0,225.6 L162.5,173.9 L125.5,145.1 L92.7,125.0 L96.8,104.9 L129.7,93.4 L174.8,104.9 L215.9,102.0 L334.7,34.9 L534.1,0.0 L1000.0,0.0 L1000.0,46.0 L984.8,54.0 L983.9,54.5 L981.7,50.9 L977.9,47.0 L970.4,40.9 L967.3,40.9 L964.0,42.0 L959.1,45.3 L956.1,51.7 L943.8,56.5 L935.9,58.8 L929.0,58.9 L923.1,58.5 L918.9,57.3 L913.8,57.8 L910.3,60.0 L910.0,63.1 L916.5,70.0 L917.1,71.0 L910.3,72.4 L897.8,72.9 L891.3,71.5 L884.9,69.2 L881.4,65.6 L875.6,65.8 L870.7,67.0 L861.9,76.2 L853.7,81.1 L840.4,86.0 L820.7,91.4 L814.0,94.4 L808.7,98.4 L803.8,103.1 L803.0,102.3 L797.6,103.8 L781.9,105.0 L772.5,106.6 L743.6,114.9 L735.5,118.2 L728.2,122.4 L720.5,124.9 L716.2,125.0 L717.8,122.7 L728.9,116.6 L733.1,113.4 L727.1,112.4 L722.3,113.0 L720.4,110.3 L721.1,108.9 L733.4,101.9 L736.8,98.4 L743.9,94.7 L745.9,92.9 L745.2,90.2 L735.8,85.3 L726.5,82.7 L724.8,82.6 L716.7,82.9 L714.6,83.0 L708.2,86.3 L693.5,97.0 L688.9,98.4 L680.7,99.2 L672.8,101.3 L668.2,103.1 L663.2,107.2 L661.4,110.9 L659.7,113.2 L656.5,115.5 L650.9,116.7 L644.6,116.6 L640.4,119.0 L636.4,120.0 L630.6,114.9 L626.0,114.8 L621.5,115.9 L616.4,121.7 L612.6,127.9 L613.7,131.0 L616.8,134.3 L624.0,136.7 L634.3,139.1 L649.8,138.7 L653.6,141.0 L653.4,145.9 L651.8,151.1 L652.5,155.9 L655.8,158.5 L665.3,159.1 L674.3,157.7 L684.0,152.9 L690.6,148.5 L697.7,146.4 L704.5,145.3 L708.2,145.9 L719.7,151.5 L726.7,153.3 L739.9,152.5 L744.5,152.7 L750.6,154.0 L754.1,154.0 L750.9,160.4 L750.2,165.3 L742.3,163.6 L738.5,162.8 L731.7,163.3 L710.2,168.3 L701.1,172.3 L700.1,178.9 L693.4,180.3 L691.5,179.3 L691.3,176.9 L689.7,176.1 L683.3,177.1 L685.0,181.3 L683.1,184.6 L676.8,189.1 L658.9,199.2 L657.2,201.2 L657.7,206.2 L665.7,208.2 L674.9,212.6 L685.0,217.3 L690.0,222.1 L695.4,233.3 L704.0,239.1 L706.3,243.0 L704.6,249.1 L706.8,250.8 L715.7,253.4 L720.9,258.8 L728.1,261.0 L731.6,263.4 L732.7,266.2 L732.1,267.6 L722.0,271.0 L723.1,271.6 L728.5,274.4 L732.6,281.5 L732.3,284.1 L730.5,285.8 L723.7,286.2 L715.3,288.1 L703.1,293.1 L692.2,295.0 L684.1,297.7 L693.4,299.6 L698.2,300.1 L710.4,296.2 L716.6,295.7 L718.7,296.2 L725.5,301.6 L730.4,303.1 L736.3,303.3 L736.4,304.7 L733.4,307.5 L728.5,309.5 L724.6,311.7 L726.0,313.1 L730.2,312.8 L732.8,313.6 L730.5,316.5 L726.6,323.3 L724.2,329.1 L724.5,332.3 L721.7,336.4 L719.0,337.5 L714.5,334.5 L712.6,335.7 L705.3,342.6 L700.2,348.2 L697.4,353.8 L695.8,356.5 L688.1,360.3 L684.9,364.2 L681.6,365.9 L674.3,366.1 L669.4,368.2 L673.0,374.7 L669.6,379.2 L670.6,384.6 L669.4,387.0 L666.7,389.4 L659.9,391.2 L657.8,393.7 L655.6,397.3 L651.8,403.0 L643.7,406.2 L638.4,410.7 L632.1,409.4 L626.4,408.8 L624.6,409.8 L622.7,411.6 L624.3,419.1 L621.5,420.3 L611.6,426.2 L607.0,427.3 L598.9,428.9 L591.7,433.1 L584.3,435.0 L583.0,436.0 L582.9,440.3 L581.2,441.7 L573.8,442.3 L567.4,443.3 L563.0,447.2 L558.4,446.1 L551.7,444.6 L548.2,445.1 L544.1,448.0 L538.5,449.8 L530.2,450.7 L529.6,446.5 L523.0,447.0 L514.0,448.9 L509.9,450.7 L506.2,450.4 L501.0,445.9 L498.9,444.5 L496.5,447.1 L497.7,448.6 L497.1,450.5 L496.5,456.7 L493.8,459.4 L488.5,460.4 L482.0,458.8 L480.4,461.3 L480.4,463.5 L478.6,464.9 L470.6,465.4 L465.9,466.4 L458.3,466.8 L452.3,464.9 L449.5,465.8 L443.9,470.1 L441.0,470.8 L431.0,470.4 L421.4,472.5 L416.2,475.4 L410.4,475.1 L406.8,474.4 L406.7,474.9 L405.8,478.1 L402.1,481.6 L402.2,482.7 L408.4,488.4 L411.8,489.5 L412.4,491.3 L407.8,493.7 L398.0,495.1 L391.8,488.6 L388.7,482.4 L388.8,478.9 L393.9,471.9 L393.7,470.3 L386.2,468.1 L383.3,468.7 L380.6,471.4 L374.8,472.0 L366.1,470.1 L358.7,463.5 L356.2,464.3 L356.0,465.8 L353.9,469.4 L350.5,470.5 L346.2,470.0 L340.0,470.4 L339.3,470.8 L336.8,469.5 L325.1,468.5 L317.1,467.0 L305.0,461.5 L301.4,458.2 L300.2,453.5 L306.3,446.7 L305.6,443.3 L302.5,441.4 L292.5,441.8 L284.0,441.4 L274.1,439.3 L266.1,434.1 L262.3,435.0 L255.6,437.9 L246.6,442.9 L242.2,444.3 L231.9,445.4 L211.4,445.9 L207.1,446.9 L199.6,450.6 L195.4,449.7 L187.7,446.2 L183.3,446.1 L176.7,447.3 L170.5,449.3 L161.8,452.2 L158.7,454.3 L125.4,450.9 L99.5,439.6 L99.1,437.2 L92.4,436.3 L85.3,437.0 L82.7,434.1 Z"
+  ];
+
+// 周边政权（域外，弱化显示）
+const MING_NEIGHBORS_REAL = [
+    {"cn": "朝鲜", "en": "Korea", "color": "#5A564C", "paths": ["M918.4,129.3 L927.2,134.9 L942.3,149.4 L946.6,153.8 L950.0,159.8 L950.0,166.6 L949.6,175.1 L947.9,180.8 L949.8,181.8 L956.2,181.5 L954.6,185.1 L951.0,189.9 L944.6,196.6 L940.5,199.4 L937.4,199.8 L930.1,197.9 L926.8,198.8 L919.0,204.0 L913.4,203.3 L909.7,201.2 L902.7,202.1 L896.0,203.9 L880.7,211.4 L874.8,211.8 L868.8,214.6 L868.1,209.5 L867.4,206.6 L865.3,200.3 L863.6,196.7 L865.7,192.6 L872.1,188.4 L872.1,185.3 L875.0,181.4 L874.5,180.2 L869.6,177.4 L868.4,174.7 L868.6,170.5 L867.5,167.5 L863.8,166.3 L856.0,165.6 L864.4,161.9 L868.3,160.8 L876.7,163.2 L880.0,161.1 L879.6,158.5 L869.8,150.5 L868.3,147.7 L866.6,146.8 L863.1,144.9 L858.6,148.0 L854.5,149.8 L849.7,144.3 L844.6,143.3 L836.3,150.3 L833.8,146.9 L830.8,144.6 L822.0,141.3 L819.8,137.2 L821.0,134.4 L826.6,130.7 L836.2,128.6 L837.0,126.2 L829.4,123.7 L834.6,115.8 L837.0,112.7 L834.5,110.3 L826.4,107.6 L824.6,107.6 L819.7,107.9 L815.7,109.2 L812.7,108.5 L806.0,105.2 L803.8,103.1 L808.7,98.4 L814.0,94.4 L820.7,91.4 L840.4,86.0 L853.7,81.1 L861.9,76.2 L870.7,67.0 L875.6,65.8 L881.4,65.6 L884.9,69.2 L891.3,71.5 L897.8,72.9 L910.3,72.4 L917.1,71.0 L916.5,70.0 L910.0,63.1 L910.3,60.0 L913.8,57.8 L918.9,57.3 L923.1,58.5 L929.0,58.9 L935.9,58.8 L943.8,56.5 L956.1,51.7 L959.1,45.3 L964.0,42.0 L967.3,40.9 L970.4,40.9 L977.9,47.0 L981.7,50.9 L983.9,54.5 L966.4,62.8 L961.2,66.9 L959.7,70.6 L960.9,74.4 L958.9,78.5 L956.5,86.4 L947.9,87.4 L943.3,89.4 L936.9,92.9 L927.0,98.7 L921.0,100.6 L912.3,100.9 L904.9,102.7 L901.5,104.7 L898.3,107.5 L893.6,115.6 L897.3,118.5 L913.0,126.1 L918.4,129.3 Z"]},
+    {"cn": "安南", "en": "Đại Việt", "color": "#4E5A3E", "paths": ["M170.5,449.3 L176.7,447.3 L183.3,446.1 L187.7,446.2 L195.4,449.7 L199.6,450.6 L207.1,446.9 L211.4,445.9 L231.9,445.4 L242.2,444.3 L246.6,442.9 L255.6,437.9 L262.3,435.0 L266.1,434.1 L274.1,439.3 L284.0,441.4 L292.5,441.8 L302.5,441.4 L305.6,443.3 L306.3,446.7 L300.2,453.5 L301.4,458.2 L305.0,461.5 L317.1,467.0 L325.1,468.5 L336.8,469.5 L339.3,470.8 L336.9,471.9 L326.2,476.3 L327.6,480.5 L325.0,482.4 L308.8,481.9 L307.0,483.7 L307.8,487.2 L304.1,490.7 L296.6,497.8 L293.8,499.1 L286.9,501.2 L284.7,502.4 L281.2,506.0 L277.3,514.3 L272.4,523.1 L275.8,525.1 L281.8,530.2 L296.1,539.9 L296.4,542.0 L297.0,546.7 L298.1,549.0 L303.5,553.4 L317.6,560.9 L334.1,572.6 L337.4,574.3 L345.6,575.0 L349.6,578.4 L353.2,587.5 L357.1,592.7 L365.3,598.2 L366.5,600.0 L327.5,600.0 L326.7,594.9 L323.9,590.9 L317.1,586.6 L316.2,584.1 L319.1,580.2 L317.4,576.6 L312.8,573.8 L303.9,570.3 L297.9,565.6 L290.6,557.4 L268.9,538.3 L260.0,531.4 L251.8,525.6 L243.6,521.3 L227.8,514.6 L225.7,513.7 L225.1,509.3 L228.7,506.0 L232.7,505.1 L238.8,505.7 L242.5,505.2 L245.9,503.5 L249.1,500.6 L249.0,496.0 L237.8,487.3 L232.3,481.2 L228.9,480.5 L223.9,482.0 L217.3,486.3 L213.7,486.9 L207.6,485.1 L199.8,481.2 L195.5,475.0 L191.2,466.6 L184.2,461.2 L176.3,456.0 L170.5,449.3 Z"]},
+    {"cn": "乌斯藏", "en": "Tibet", "color": "#6A5A48", "paths": ["M0.0,137.6 L92.7,125.0 L125.5,145.1 L162.5,173.9 L183.0,225.6 L133.8,326.2 L75.3,350.4 L73.5,349.2 L67.0,349.4 L63.3,349.1 L60.5,346.3 L57.4,338.2 L52.3,334.3 L45.8,331.8 L42.2,332.2 L38.3,335.2 L38.3,336.4 L0.0,340.3 Z"]},
+    {"cn": "缅甸诸邦", "en": "Burmese kingdoms", "color": "#574B38", "paths": ["M0.0,457.5 L1.1,457.0 L6.3,408.5 L16.7,410.9 L34.0,412.1 L37.5,431.5 L53.1,448.5 L54.1,480.8 L57.6,505.0 L52.9,508.7 L51.1,512.0 L50.6,519.4 L49.2,524.0 L50.0,527.7 L48.9,529.8 L46.8,529.8 L39.2,531.0 L27.1,520.1 L0.0,524.7 Z"]},
+    {"cn": "日本", "en": "Japan (Warring States)", "color": "#48535C", "paths": ["M988.0,281.9 L987.3,280.6 L990.7,275.8 L992.4,270.4 L988.1,269.4 L985.0,271.2 L983.0,275.4 L978.1,279.5 L973.9,277.6 L973.1,275.7 L977.3,271.5 L977.7,268.8 L973.1,260.6 L975.3,259.5 L984.1,254.3 L985.2,253.1 L985.6,248.9 L978.8,241.8 L974.5,241.4 L972.4,243.8 L967.0,248.3 L963.8,247.2 L960.9,242.7 L956.0,240.3 L952.7,237.0 L957.9,234.0 L967.4,234.8 L976.5,233.3 L980.5,229.1 L983.6,226.5 L989.8,226.0 L996.0,226.5 L999.2,229.9 L1000.0,230.3 L1000.0,275.4 L998.8,276.1 L992.7,282.2 L988.0,281.9 Z", "M1000.0,221.8 L997.1,221.9 L993.7,220.7 L994.6,217.6 L996.9,215.1 L1000.0,215.1 Z"]},
+    {"cn": "老挝", "en": "Laos", "color": "#4A5238", "paths": ["M73.2,477.7 L73.9,448.5 L85.3,437.0 L92.4,436.3 L99.1,437.2 L99.5,439.6 L125.4,450.9 L158.7,454.3 L161.8,452.2 L170.5,449.3 L176.3,456.0 L184.2,461.2 L191.2,466.6 L195.5,475.0 L199.8,481.2 L207.6,485.1 L213.7,486.9 L217.3,486.3 L223.9,482.0 L228.9,480.5 L232.3,481.2 L237.8,487.3 L249.0,496.0 L249.1,500.6 L245.9,503.5 L242.5,505.2 L238.8,505.7 L232.7,505.1 L228.7,506.0 L213.2,519.0 L185.4,512.1 L180.0,510.7 L126.7,499.3 L126.6,495.5 L125.1,494.0 L121.3,492.3 L114.3,490.8 L113.3,491.6 L73.2,477.7 Z"]},
+    {"cn": "掸邦", "en": "Shan states", "color": "#553E38", "paths": ["M54.1,480.8 L53.1,448.5 L37.5,431.5 L34.0,412.1 L16.7,410.9 L6.3,408.5 L1.1,457.0 L0.0,457.5 L0.0,340.3 L38.3,336.4 L38.3,335.2 L42.2,332.2 L45.8,331.8 L52.3,334.3 L57.4,338.2 L60.5,346.3 L63.3,349.1 L56.6,376.9 L72.2,417.0 L82.7,434.1 L85.3,437.0 L73.9,448.5 L73.2,477.7 L54.1,480.8 Z"]},
+    {"cn": "兰纳", "en": "Lan Na", "color": "#4D4438", "paths": ["M185.4,512.1 L135.8,551.5 L90.7,556.2 L39.2,531.0 L39.2,531.0 L46.8,529.8 L48.9,529.8 L50.0,527.7 L49.2,524.0 L50.6,519.4 L51.1,512.0 L52.9,508.7 L57.6,505.0 L54.1,480.8 L73.2,477.7 L113.3,491.6 L114.3,490.8 L121.3,492.3 L125.1,494.0 L126.6,495.5 L126.7,499.3 L180.0,510.7 L185.4,512.1 Z"]}
+  ];
+
+// 万里长城（明九边，自山海关至嘉峪关，真实关隘折线）
+const MING_GREATWALL_REAL = { path: "M680.0,100.0 L602.9,86.0 L574.3,94.0 L542.9,88.0 L494.3,98.0 L442.9,112.0 L391.4,134.0 L294.3,130.0 L294.3,180.0 L62.9,104.0", nodes: [
+    {"name": "山海关", "x": 680.0, "y": 100.0},
+    {"name": "古北口", "x": 602.9, "y": 86.0},
+    {"name": "居庸关", "x": 574.3, "y": 94.0},
+    {"name": "宣府", "x": 542.9, "y": 88.0},
+    {"name": "大同", "x": 494.3, "y": 98.0},
+    {"name": "偏关", "x": 442.9, "y": 112.0},
+    {"name": "榆林", "x": 391.4, "y": 134.0},
+    {"name": "宁夏", "x": 294.3, "y": 130.0},
+    {"name": "固原", "x": 294.3, "y": 180.0},
+    {"name": "嘉峪关", "x": 62.9, "y": 104.0}
+  ] };
+
+// 主要水系（真实走向）
+const MING_RIVERS_REAL = [
+    {"key": "huanghe", "name": "黄河", "color": "#8B7355", "width": 6, "path": "M28.6,200.0 L222.9,178.0 L294.3,130.0 L400.0,90.0 L442.9,100.0 L414.3,130.0 L408.6,190.0 L408.6,208.0 L471.4,204.0 L522.9,202.0 L557.1,180.0 L600.0,164.0 L628.6,148.0 L657.1,150.0"},
+    {"key": "changjiang", "name": "长江", "color": "#4A7BA7", "width": 7, "path": "M245.7,324.0 L300.0,308.0 L357.1,290.0 L437.1,286.0 L462.9,294.0 L522.9,290.0 L571.4,306.0 L620.0,286.0 L651.4,258.0 L685.7,270.0 L728.6,270.0"},
+    {"key": "huaihe", "name": "淮河", "color": "#6B8E9F", "width": 5, "path": "M497.1,252.0 L557.1,250.0 L611.4,242.0 L642.9,236.0 L671.4,230.0"},
+    {"key": "yunhe", "name": "京杭运河", "color": "#5F8EA0", "width": 4, "path": "M691.4,294.0 L702.9,274.0 L668.6,252.0 L657.1,230.0 L605.7,214.0 L588.6,192.0 L562.9,164.0 L594.3,134.0 L591.4,102.0 L582.9,102.0"}
+  ];
+
+// 主要山脉（真实位置）
+const MING_MOUNTAINS_REAL = [
+    {"name": "阴山", "x": 400.0, "y": 70.0, "span": 140, "peaks": 5},
+    {"name": "太行山", "x": 508.6, "y": 144.0, "span": 130, "peaks": 4},
+    {"name": "秦岭", "x": 342.9, "y": 224.0, "span": 170, "peaks": 5},
+    {"name": "大巴山", "x": 357.1, "y": 250.0, "span": 110, "peaks": 4},
+    {"name": "南岭", "x": 457.1, "y": 400.0, "span": 180, "peaks": 5},
+    {"name": "武夷山", "x": 614.3, "y": 370.0, "span": 150, "peaks": 4},
+    {"name": "横断山", "x": 100.0, "y": 340.0, "span": 130, "peaks": 4}
+  ];
+
+// 沙漠（塞外）
+const MING_DESERT_REAL = [
+    {"name": "塞外大漠", "cx": 114.3, "cy": 50.0, "rx": 120, "ry": 50},
+    {"name": "鄂尔多斯", "cx": 357.1, "cy": 120.0, "rx": 90, "ry": 40}
+  ];
+
+// 32 城真实坐标（覆盖 MAP_V67_CITIES 之 x/y）
+const MING_CITIES_REAL = [
+    {"name": "北京", "lon": 116.4, "lat": 39.9, "x": 582.9, "y": 102.0},
+    {"name": "南京", "lon": 118.8, "lat": 32.1, "x": 651.4, "y": 258.0},
+    {"name": "西安", "lon": 108.9, "lat": 34.3, "x": 368.6, "y": 214.0},
+    {"name": "太原", "lon": 112.5, "lat": 37.9, "x": 471.4, "y": 142.0},
+    {"name": "济南", "lon": 117.0, "lat": 36.7, "x": 600.0, "y": 166.0},
+    {"name": "开封", "lon": 114.3, "lat": 34.8, "x": 522.9, "y": 204.0},
+    {"name": "杭州", "lon": 120.2, "lat": 30.3, "x": 691.4, "y": 294.0},
+    {"name": "苏州", "lon": 120.6, "lat": 31.3, "x": 702.9, "y": 274.0},
+    {"name": "武昌", "lon": 114.3, "lat": 30.5, "x": 522.9, "y": 290.0},
+    {"name": "成都", "lon": 104.1, "lat": 30.7, "x": 231.4, "y": 286.0},
+    {"name": "广州", "lon": 113.3, "lat": 23.1, "x": 494.3, "y": 438.0},
+    {"name": "福州", "lon": 119.3, "lat": 26.1, "x": 665.7, "y": 378.0},
+    {"name": "昆明", "lon": 102.7, "lat": 25.0, "x": 191.4, "y": 400.0},
+    {"name": "贵阳", "lon": 106.6, "lat": 26.6, "x": 302.9, "y": 368.0},
+    {"name": "桂林", "lon": 110.3, "lat": 25.3, "x": 408.6, "y": 394.0},
+    {"name": "南昌", "lon": 115.9, "lat": 28.7, "x": 568.6, "y": 326.0},
+    {"name": "兰州", "lon": 103.8, "lat": 36.1, "x": 222.9, "y": 178.0},
+    {"name": "银川", "lon": 106.3, "lat": 38.5, "x": 294.3, "y": 130.0},
+    {"name": "榆林", "lon": 109.7, "lat": 38.3, "x": 391.4, "y": 134.0},
+    {"name": "大同", "lon": 113.3, "lat": 40.1, "x": 494.3, "y": 98.0},
+    {"name": "宣化", "lon": 115.0, "lat": 40.6, "x": 542.9, "y": 88.0},
+    {"name": "蓟州", "lon": 117.4, "lat": 40.0, "x": 611.4, "y": 100.0},
+    {"name": "辽阳", "lon": 123.2, "lat": 41.3, "x": 777.1, "y": 74.0},
+    {"name": "固原", "lon": 106.3, "lat": 36.0, "x": 294.3, "y": 180.0},
+    {"name": "偏关", "lon": 111.5, "lat": 39.4, "x": 442.9, "y": 112.0},
+    {"name": "嘉峪关", "lon": 98.2, "lat": 39.8, "x": 62.9, "y": 104.0},
+    {"name": "山海关", "lon": 119.8, "lat": 40.0, "x": 680.0, "y": 100.0},
+    {"name": "居庸关", "lon": 116.1, "lat": 40.3, "x": 574.3, "y": 94.0},
+    {"name": "荆州", "lon": 112.2, "lat": 30.3, "x": 462.9, "y": 294.0},
+    {"name": "扬州", "lon": 119.4, "lat": 32.4, "x": 668.6, "y": 252.0},
+    {"name": "泉州", "lon": 118.7, "lat": 24.9, "x": 648.6, "y": 402.0},
+    {"name": "琼州", "lon": 110.3, "lat": 20.0, "x": 408.6, "y": 500.0}
+  ];
+
+// 24 府真实坐标（覆盖 MAP_V67_REGIONS 之 x/y）
+const MING_REGIONS_REAL = {"gansu": {"x": 128.6, "y": 122.0}, "ningxia": {"x": 294.3, "y": 130.0}, "yansui": {"x": 391.4, "y": 134.0}, "datong": {"x": 494.3, "y": 98.0}, "xuanfu": {"x": 542.9, "y": 88.0}, "jizhou": {"x": 611.4, "y": 100.0}, "shaanxi": {"x": 368.6, "y": 214.0}, "guyuan": {"x": 294.3, "y": 180.0}, "shanxizhen": {"x": 442.9, "y": 112.0}, "shanxi": {"x": 471.4, "y": 142.0}, "beizhili": {"x": 582.9, "y": 102.0}, "liaodong": {"x": 777.1, "y": 74.0}, "sichuan": {"x": 231.4, "y": 286.0}, "guizhou": {"x": 302.9, "y": 368.0}, "henan": {"x": 522.9, "y": 204.0}, "shandong": {"x": 600.0, "y": 166.0}, "huguang": {"x": 522.9, "y": 290.0}, "nanzhili": {"x": 651.4, "y": 258.0}, "yunnan": {"x": 191.4, "y": 400.0}, "guangxi": {"x": 408.6, "y": 394.0}, "jiangxi": {"x": 568.6, "y": 326.0}, "zhejiang": {"x": 691.4, "y": 294.0}, "fujian": {"x": 665.7, "y": 378.0}, "guangdong": {"x": 494.3, "y": 438.0}};
+
+// ====== 覆盖旧手绘坐标（保持 name/region/pop/faction 不变，仅纠正 x/y）======
+(function () {
+    try {
+        if (typeof MAP_V67_CITIES !== 'undefined') {
+            const lut = {};
+            MING_CITIES_REAL.forEach(c => { lut[c.name] = c; });
+            MAP_V67_CITIES.forEach(oc => {
+                const nc = lut[oc.name];
+                if (nc) { oc.x = nc.x; oc.y = nc.y; }
+            });
+        }
+    } catch (e) {}
+    try {
+        if (typeof MAP_V67_REGIONS !== 'undefined') {
+            Object.keys(MING_REGIONS_REAL).forEach(k => {
+                if (MAP_V67_REGIONS[k]) {
+                    MAP_V67_REGIONS[k].x = MING_REGIONS_REAL[k].x;
+                    MAP_V67_REGIONS[k].y = MING_REGIONS_REAL[k].y;
+                }
+            });
+        }
+    } catch (e) {}
+})();
+
+console.log('✓ 批O·真舆图数据（真实历史疆域 + 地理坐标）加载完成');
+
+</script>
+<script>
+// ============================================================
+// 《大明国策》v6.9 批O · 真舆图（map_v69.js）
+// 核心升级：地图从「手绘 SVG」升级为「真实历史疆域矢量舆图」
+//   1) 大明疆域 + 8 邻国 = historical-basemaps world_1600.geojson 真实矢量
+//      （1600 年万历朝，CC-BY-SA 4.0），等距圆柱投影 + Sutherland-Hodgman 裁剪
+//   2) 城市 / 布政司 / 长城 / 河流 / 山脉 / 沙漠 全部按真实经纬度重投影
+//   3) 地图功能增强：域外政权标注、悬停名称、数据来源署名、真实地理读图
+// 复用：v67 城市/季节/罗盘/比例尺、v68 府印/边患/远征（坐标已由 geo_ming.js 纠正）
+// 反爽铁律不变：边患推进只增不减、平患耗饷抽兵、京畿告警削威望，绝无白嫖。
+// ============================================================
+
+// ====== 邻国 path 质心（用于名称标注）======
+function v69Centroid(ds) {
+    try {
+        let sx = 0, sy = 0, n = 0;
+        ds.forEach(d => {
+            const m = d.match(/-?[\d.]+,-?[\d.]+/g);
+            if (!m) return;
+            m.forEach(pair => {
+                const p = pair.split(',');
+                sx += parseFloat(p[0]); sy += parseFloat(p[1]); n++;
+            });
+        });
+        if (!n) return { x: 0, y: 0 };
+        return { x: Math.round(sx / n), y: Math.round(sy / n) };
+    } catch (e) { return { x: 0, y: 0 }; }
+}
+
+// ====== 海域底色（东海南海日本海，深蓝）======
+function renderMapV69Sea() {
+    return `<rect x="0" y="0" width="${MAP_V67_W}" height="${MAP_V67_H}" fill="#0E2233"/>`;
+}
+
+// ====== 沙漠（塞外）======
+function renderMapV69Desert() {
+    try {
+        if (typeof MING_DESERT_REAL === 'undefined') return '';
+        return MING_DESERT_REAL.map(d =>
+            `<ellipse cx="${d.cx}" cy="${d.cy}" rx="${d.rx}" ry="${d.ry}" fill="#D2B48C" opacity="0.26"/>` +
+            `<text x="${d.cx}" y="${d.cy + 2}" text-anchor="middle" fill="#BFA98A" font-size="11" font-family="serif" opacity="0.7" style="font-style:italic">${d.name}</text>`
+        ).join('');
+    } catch (e) { return ''; }
+}
+
+// ====== 邻国（域外政权，弱化暗色，悬停显示国名）======
+function renderMapV69Neighbors() {
+    try {
+        if (typeof MING_NEIGHBORS_REAL === 'undefined') return '';
+        let html = '';
+        MING_NEIGHBORS_REAL.forEach(n => {
+            n.paths.forEach(d => {
+                html += `<path d="${d}" fill="${n.color}" opacity="0.5" stroke="#0A1118" stroke-width="1"/>`;
+            });
+        });
+        return html;
+    } catch (e) { return ''; }
+}
+
+// ====== 邻国名称标注 ======
+function renderMapV69NeighborLabels() {
+    try {
+        if (typeof MING_NEIGHBORS_REAL === 'undefined') return '';
+        return MING_NEIGHBORS_REAL.map(n => {
+            const c = v69Centroid(n.paths);
+            return `<text x="${c.x}" y="${c.y}" text-anchor="middle" fill="#CBBFA8" font-size="13" font-weight="bold" font-family="serif" opacity="0.85" style="text-shadow:1px 1px 3px rgba(0,0,0,0.9)">${n.cn}</text>`;
+        }).join('');
+    } catch (e) { return ''; }
+}
+
+// ====== 大明疆域（真实矢量，淡金版图 + 金色描边）======
+function renderMapV69Territory() {
+    try {
+        if (typeof MING_TERRITORY_REAL === 'undefined') return '';
+        let html = '';
+        MING_TERRITORY_REAL.forEach(d => {
+            html += `<path d="${d}" fill="rgba(244,232,208,0.16)" stroke="#C9A227" stroke-width="2.5" stroke-linejoin="round"/>`;
+        });
+        // 光晕描边
+        MING_TERRITORY_REAL.forEach(d => {
+            html += `<path d="${d}" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.35"/>`;
+        });
+        return html;
+    } catch (e) { return ''; }
+}
+
+// ====== 山脉（真实位置）======
+function renderMapV69Mountains() {
+    try {
+        if (typeof MING_MOUNTAINS_REAL === 'undefined') return '';
+        return MING_MOUNTAINS_REAL.map(m => {
+            const peaks = [];
+            for (let i = 0; i < m.peaks; i++) {
+                const px = m.x + (i * m.span / (m.peaks - 1));
+                const py = m.y + (i % 2 === 0 ? -8 : 4);
+                peaks.push(`<polygon points="${px-7},${py+13} ${px},${py-7} ${px+7},${py+13}" fill="#5D4037" stroke="#8D6E63" stroke-width="1.2"/>`);
+            }
+            peaks.push(`<text x="${m.x + m.span/2}" y="${m.y - 13}" text-anchor="middle" fill="#6D4C41" font-size="13" font-weight="bold" font-family="serif" opacity="0.9" style="text-shadow:1px 1px 2px rgba(0,0,0,0.4)">${m.name}</text>`);
+            return peaks.join('');
+        }).join('');
+    } catch (e) { return ''; }
+}
+
+// ====== 河流（真实走向）======
+function renderMapV69Rivers() {
+    try {
+        if (typeof MING_RIVERS_REAL === 'undefined') return '';
+        let html = '';
+        MING_RIVERS_REAL.forEach(r => {
+            const m = r.path.match(/-?[\d.]+,-?[\d.]+/g);
+            const last = m ? m[m.length - 1].split(',') : ['0','0'];
+            html += `<path d="${r.path}" fill="none" stroke="${r.color}" stroke-width="${r.width}" opacity="0.88" stroke-linecap="round" stroke-linejoin="round"/>`;
+            html += `<text x="${parseFloat(last[0]) + 8}" y="${parseFloat(last[1]) - 6}" fill="${r.color}" font-size="13" font-weight="bold" font-family="serif" style="text-shadow:1px 1px 2px rgba(0,0,0,0.5)">${r.name}</text>`;
+        });
+        return html;
+    } catch (e) { return ''; }
+}
+
+// ====== 长城（真实九边，山海关至嘉峪关）======
+function renderMapV69Greatwall() {
+    try {
+        if (typeof MING_GREATWALL_REAL === 'undefined') return '';
+        return `<path d="${MING_GREATWALL_REAL.path}" fill="none" stroke="#8B4513" stroke-width="5" stroke-dasharray="12 6" opacity="0.95" stroke-linecap="round" stroke-linejoin="round"/>` +
+               `<text x="480" y="68" fill="#A0522D" font-size="15" font-weight="bold" font-family="serif" style="text-shadow:1px 1px 2px rgba(0,0,0,0.5)">万里长城</text>`;
+    } catch (e) { return ''; }
+}
+
+// ====== 图例 ======
+function renderMapV69Legend() {
+    try {
+        const n = (typeof MING_NEIGHBORS_REAL !== 'undefined') ? MING_NEIGHBORS_REAL.length : 8;
+        return `<div class="map-legend">
+            <span><i class="map-legend-dot map-green-bg"></i>安定</span>
+            <span><i class="map-legend-dot map-yellow-bg"></i>警兆</span>
+            <span><i class="map-legend-dot map-red-bg"></i>叛乱灾荒</span>
+            <span><i class="map-legend-flag"></i>敌军压境</span>
+            <span><i class="map-legend-flag map-legend-blue"></i>王师远征</span>
+            <span><i style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#5A564C"></i>域外</span>
+            <span style="margin-left:auto;color:#FFD700;font-weight:bold">真舆图·${n}邻国·32城·长城</span>
+        </div>`;
+    } catch (e) { return ''; }
+}
+
+// ====== 主渲染（真实历史疆域舆图）======
+function renderMapV69Tab() {
+    try {
+        if (!GameState.mapData || !GameState.mapData.status) {
+            GameState.mapData = initMapState(GameState.script ? GameState.script.id : 'chenghua');
+        }
+        return `
+            <div class="report-title">兵部 · 大明真舆图</div>
+            ${renderMapV69Legend()}
+            <div class="map-svg-wrap">
+                <svg class="map-svg" viewBox="0 0 ${MAP_V67_W} ${MAP_V67_H}" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <filter id="province-shadow">
+                            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.5"/>
+                        </filter>
+                    </defs>
+                    <!-- 海域底色 -->
+                    ${renderMapV69Sea()}
+                    <!-- 沙漠（塞外） -->
+                    ${renderMapV69Desert()}
+                    <!-- 域外政权 -->
+                    ${renderMapV69Neighbors()}
+                    ${renderMapV69NeighborLabels()}
+                    <!-- 大明疆域（真实矢量） -->
+                    ${renderMapV69Territory()}
+                    <!-- 山脉 -->
+                    ${renderMapV69Mountains()}
+                    <!-- 河流 -->
+                    ${renderMapV69Rivers()}
+                    <!-- 长城 -->
+                    ${renderMapV69Greatwall()}
+                    <!-- 季节背景 -->
+                    ${(typeof renderMapV67SeasonOverlay === 'function') ? renderMapV67SeasonOverlay() : ''}
+                    <!-- 城市节点（坐标已真实化） -->
+                    ${(typeof renderMapV67Cities === 'function') ? renderMapV67Cities() : ''}
+                    <!-- 省州府府印（坐标已真实化） -->
+                    ${(typeof renderMapV68Provinces === 'function') ? renderMapV68Provinces() : ''}
+                    <!-- 边患敌军层 -->
+                    ${(typeof renderMapV68Threats === 'function') ? renderMapV68Threats() : ''}
+                    <!-- 王师远征 -->
+                    ${(typeof renderMapV68Expedition === 'function') ? renderMapV68Expedition() : ''}
+                    <!-- 罗盘 -->
+                    ${(typeof renderMapV67Compass === 'function') ? renderMapV67Compass() : ''}
+                    <!-- 比例尺 -->
+                    ${(typeof renderMapV67Scale === 'function') ? renderMapV67Scale() : ''}
+                </svg>
+            </div>
+            <div class="map-note">
+                疆域据 historical-basemaps（CC-BY-SA 4.0）1600 年世界历史疆域矢量绘就，
+                含两京十三布政司、九边重镇及朝鲜、安南、乌斯藏、缅甸、日本等八邻国；
+                城市、长城、河山皆按真实经纬度投影。敌军压境（红旗）随边患北上，
+                逼近京畿则国威动摇；点击有红旗之府可「调兵迎击」，耗饷抽兵以平边患。
+            </div>
+        `;
+    } catch (e) {
+        try { return (typeof renderMapV68Tab === 'function') ? renderMapV68Tab() : ((typeof renderMapV67Tab === 'function') ? renderMapV67Tab() : ''); } catch (e2) { return ''; }
+    }
+}
+
+// ====== 接管地图 tab 渲染（modules.js 已优先调 renderMapV68Tab）======
+(function () {
+    try {
+        // 保留 v68 的山河战图函数引用（部分标记层仍复用），但主渲染切到真实疆域版
+        if (typeof renderMapV68Tab === 'function') {
+            renderMapV68Tab = renderMapV69Tab;
+        }
+    } catch (e) {}
+})();
+
+console.log('✓ 批O·真舆图（真实历史疆域矢量 + 地理坐标）加载完成');
 </script>
 <!-- 批J(v6.3)：省份治理深挖（每省素质画像+分支治理，置于 map.js 之后） -->
 <script>
@@ -17807,6 +18172,8 @@ function initMilOpsState() {
         ying: { shenji: 0, sanqian: 0, shensu: 0 },
         // 挂帅校尉（需名将）
         marshal: null,
+        // 挂帅将领将略（影响整饬成败，将星录 v7.0）
+        marshalAbility: 70,
         // 火器研造等级：0无 1鸟铳 2佛郎机 3红衣大炮
         firearms: 0,
         // 研究院（营造线）层数
@@ -21288,6 +21655,587 @@ function renderMilTechTab() {
 }
 
 console.log('✓ 批F·军事科技树加载完成');
+</script>
+<!-- 批P(v7.0)：将星录（军事将领体系深挖：能力/忠诚/反叛/平叛） -->
+<script>
+// ============================================
+// 《大明国策》批P(v7.0) · 将星录（军事将领体系深挖）
+// 将领从「一个名字」升级为「有血有肉的人」：
+//   能力／忠诚／年龄／状态（在朝·外任·病·亡·反）
+//   忠诚动态演算 → 低忠在外将拥兵自重、举兵反叛（需平叛）
+//   赏赐（耗内帑）提忠、罢免（削威望+军心）
+//   挂帅真正引用将领，能力影响三大营整饬成败与出征演算
+// 史据：能力／忠诚／列传引文全部沿用 expedition.js 之 EXP_GENERALS，
+//      各条出处均为《明史》（卷171 王越 / 卷195 王守仁 / 卷198 杨一清 /
+//      卷238 李成梁·李如松·麻贵 / 卷250 孙承宗 / 卷259 熊廷弼·袁崇焕 / 卷271 满桂）。
+//      表字／年龄／镇所为演绎性设定（正史有据者录，无确据者留空）。
+// ============================================
+
+// 将领家世补白（表字／年齿／主要镇戍方向；演绎性，不另立史据）
+const GEN_ARCHIVE = {
+    chenghua: {
+        '王越':   { zi: '世昌', age: 40, base: '延绥' },
+        '朱永':   { zi: '',     age: 40, base: '大同' },
+        '赵辅':   { zi: '',     age: 50, base: '两广' }
+    },
+    zhengde: {
+        '仇钺':   { zi: '',     age: 41, base: '宁夏' },
+        '王守仁': { zi: '伯安', age: 34, base: '南赣' },
+        '杨一清': { zi: '应宁', age: 52, base: '固原' }
+    },
+    wanli: {
+        '李成梁': { zi: '汝契', age: 47, base: '辽东' },
+        '李如松': { zi: '子茂', age: 24, base: '辽东' },
+        '麻贵':   { zi: '',     age: 40, base: '大同' }
+    },
+    tianqi: {
+        '孙承宗': { zi: '稚绳', age: 58, base: '蓟辽' },
+        '熊廷弼': { zi: '飞百', age: 52, base: '辽东' },
+        '袁崇焕': { zi: '元素', age: 37, base: '辽东' },
+        '满桂':   { zi: '',     age: 40, base: '宣大' }
+    }
+};
+
+const GEN_REBEL_LOYALTY = 45;   // 忠诚低于此值且在镇，有拥兵反叛之虞
+const GEN_SICK_AGE = 64;        // 年过此，有衰病谢世之虞
+
+// 将领状态层初始化（旧档缺失时兜底）
+function initGeneralsState() {
+    const id = (GameState.script && GameState.script.id) || 'chenghua';
+    const list = [];
+    try {
+        const pool = (typeof EXP_GENERALS !== 'undefined' && EXP_GENERALS[id]) ? EXP_GENERALS[id] : [];
+        pool.forEach(function (g) {
+            const arch = (GEN_ARCHIVE[id] && GEN_ARCHIVE[id][g.name]) || {};
+            list.push({
+                name: g.name,
+                zi: arch.zi || '',
+                ability: g.ability,
+                loyalty: g.loyalty,
+                age: arch.age || 40,
+                base: arch.base || '九边',
+                status: '在朝',   // 在朝 / 外任 / 病 / 亡 / 反
+                src: g.src || ''
+            });
+        });
+    } catch (e) { }
+    return { list: list, tick: 0, rebel: null, marshalAbility: 70 };
+}
+
+function ensureGeneralsState() {
+    try {
+        if (!GameState.generals) { GameState.generals = initGeneralsState(); }
+        if (!GameState.generals.list) { GameState.generals.list = []; }
+        if (GameState.generals.rebel === undefined) { GameState.generals.rebel = null; }
+        if (GameState.generals.marshalAbility === undefined) { GameState.generals.marshalAbility = 70; }
+    } catch (e) { }
+}
+
+function genRoster() {
+    try { ensureGeneralsState(); return GameState.generals.list; } catch (e) { return []; }
+}
+
+function genFind(name) {
+    try { return genRoster().find(function (g) { return g.name === name; }) || null; } catch (e) { return null; }
+}
+
+function genStatusName(g) {
+    return { '在朝': '在朝', '外任': '在镇', '病': '卧病', '亡': '谢世', '反': '反叛' }[g.status] || g.status;
+}
+
+// 挂帅：引用将领能力，使三大营整饬／出征演算随之而变
+function genMakeMarshal(name) {
+    try {
+        const g = genFind(name);
+        if (!g) { pushNews('兵部', '此人不在将星录中，未可挂帅。', 'normal'); return; }
+        if (g.status === '亡') { pushNews('兵部', `${g.name}已谢世，未可复用。`, 'danger'); return; }
+        if (g.status === '反') { pushNews('兵部', `${g.name}已反，岂容再领兵。`, 'danger'); return; }
+        if (g.status === '病') { pushNews('兵部', `${g.name}卧病，未可出征。`, 'normal'); return; }
+        // 兼容旧 milOps.marshal（字符串），同时写入能力值
+        if (GameState.milOps) {
+            GameState.milOps.marshal = g.name;
+            GameState.milOps.marshalAbility = g.ability;
+        }
+        if (GameState.generals) { GameState.generals.marshalAbility = g.ability; }
+        // 已在镇者不重复记外任；在朝者转为外任
+        if (g.status === '在朝') { g.status = '外任'; }
+        pushNews('兵部', `${g.name}${g.zi ? '（字' + g.zi + '）' : ''}挂帅，节制三大营。将略${g.ability}，忠心${g.loyalty}。`, 'normal');
+        renderScreen();
+    } catch (e) { }
+}
+
+// 赏赐：耗内帑提忠（反叛者不可赎）
+function genReward(name) {
+    try {
+        const g = genFind(name);
+        if (!g) return;
+        if (g.status === '反' || g.status === '亡') { pushNews('内帑', '此情不可用金银挽回。', 'danger'); return; }
+        const purse = (GameState.stats.privyPurse !== undefined) ? GameState.stats.privyPurse : 0;
+        if (purse < 500) { pushNews('内帑', '内帑不足以颁赏。', 'danger'); return; }
+        GameState.stats.privyPurse -= 500;
+        g.loyalty = Math.min(100, g.loyalty + 12);
+        pushNews('内帑', `赐${g.name}内帑五百两，其心少安，忠心升至${g.loyalty}。`, 'normal');
+        renderScreen();
+    } catch (e) { }
+}
+
+// 罢免：削威望军心，令其还朝（反叛者诛之，见平叛）
+function genDismiss(name) {
+    try {
+        const g = genFind(name);
+        if (!g) return;
+        if (g.status === '反' || g.status === '亡') return;
+        if (g.status === '在朝') { pushNews('兵部', `${g.name}本在朝，无从罢免。`, 'normal'); return; }
+        g.status = '在朝';
+        g.loyalty = Math.max(5, g.loyalty - 15);
+        GameState.stats.prestige = Math.max(0, GameState.stats.prestige - 2);
+        if (GameState.factions.military !== undefined) GameState.factions.military = Math.max(0, GameState.factions.military - 3);
+        if (GameState.milOps && GameState.milOps.marshal === g.name) GameState.milOps.marshal = null;
+        pushNews('兵部', `夺${g.name}兵权还朝，朝野侧目。军心浮动，忠心降至${g.loyalty}。`, 'normal');
+        renderScreen();
+    } catch (e) { }
+}
+
+// 平叛：出师讨逆，耗军力饷银；或诛或赦
+function genPutDown(mode) {
+    try {
+        const rb = GameState.generals && GameState.generals.rebel;
+        if (!rb || !rb.name) { pushNews('兵部', '眼前并无反者。', 'normal'); return; }
+        const g = genFind(rb.name);
+        if (!g || g.status !== '反') { GameState.generals.rebel = null; return; }
+        if ((GameState.stats.militaryPower || 0) < 15) { pushNews('兵部', '兵力不敷，无力讨逆。', 'danger'); return; }
+        GameState.stats.militaryPower -= 12;
+        GameState.stats.treasury = Math.max(0, GameState.stats.treasury - 800);
+        if (mode === '赦') {
+            g.status = '在朝';
+            g.loyalty = Math.max(50, Math.min(70, g.loyalty + 10));
+            GameState.stats.prestige = Math.min(100, GameState.stats.prestige + 4);
+            pushNews('平叛', `${g.name}势穷归命，陛下贷其死，收兵还朝。军心安。`, 'normal');
+        } else {
+            g.status = '亡';
+            GameState.stats.prestige = Math.min(100, GameState.stats.prestige + 6);
+            pushNews('平叛', `${g.name}伏诛，传首九边，以儆效尤。威望大增。`, 'normal');
+        }
+        GameState.generals.rebel = null;
+        renderScreen();
+    } catch (e) { }
+}
+
+// 将星巡检（每季首月执行一轮）
+function genTick() {
+    try {
+        ensureGeneralsState();
+        if (GameState.currentMonth !== 0) return;   // 仅季首执行
+        const st = GameState.generals;
+        st.tick = (st.tick || 0) + 1;
+
+        const morale = (GameState.factions.military !== undefined) ? GameState.factions.military : 60;
+        const corruption = (GameState.stats.corruption !== undefined) ? GameState.stats.corruption : 40;
+
+        st.list.forEach(function (g) {
+            if (g.status === '亡' || g.status === '反' || g.status === '病') return;
+
+            // 年龄增长（每季 0.25 岁，即一年一岁）
+            g.age += 0.25;
+
+            // 忠诚漂移：在朝者缓缓向皇恩回笼；在镇者受腐败军心侵蚀
+            if (g.status === '在朝') {
+                if (g.loyalty < 70) g.loyalty = Math.min(70, g.loyalty + 1);
+            } else if (g.status === '外任') {
+                const drift = (0.4 + corruption * 0.008) - (morale - 60) * 0.001;
+                g.loyalty = Math.max(0, Math.round((g.loyalty - drift) * 10) / 10);
+            }
+
+            // 衰病谢世（老将且在外任／低忠更易）
+            if (g.age > GEN_SICK_AGE && Math.random() < 0.015) {
+                g.status = '病';
+                pushNews('兵部', `${g.name}积劳成疾，卧病不起。`, 'normal');
+                return;
+            }
+
+            // 拥兵反叛（低忠且在镇）
+            if (g.status === '外任' && g.loyalty < GEN_REBEL_LOYALTY && !st.rebel) {
+                const p = (GEN_REBEL_LOYALTY - g.loyalty) / 220;
+                if (Math.random() < p) {
+                    g.status = '反';
+                    st.rebel = { name: g.name };
+                    GameState.stats.prestige = Math.max(0, GameState.stats.prestige - 6);
+                    GameState.stats.mandate = Math.max(0, GameState.stats.mandate - 2);
+                    GameState.stats.militaryPower = Math.max(0, GameState.stats.militaryPower - 8);
+                    GameState.stats.stability = Math.max(0, GameState.stats.stability - 3);
+                    if (GameState.factions.military !== undefined) GameState.factions.military = Math.max(0, GameState.factions.military - 5);
+                    pushNews('肘腋之变', `镇边大将${g.name}拥兵自重，已举反旗！边镇动摇，须速平之。`, 'critical');
+                }
+            }
+        });
+    } catch (e) { }
+}
+
+// 将星录面板（挂到军事 tab 尾部）
+function renderGenerals() {
+    try {
+        const list = genRoster();
+        if (!list.length) return '';
+        const st = GameState.generals;
+        const rows = list.map(function (g) {
+            const cls = { '在朝': '', '外任': 'gen-out', '病': 'gen-sick', '亡': 'gen-dead', '反': 'gen-rebel' }[g.status] || '';
+            const marshalBtn = (g.status === '在朝' || g.status === '外任')
+                ? `<button class="btn" onclick="genMakeMarshal('${g.name}')">挂帅</button>` : '';
+            const rewardBtn = (g.status !== '亡' && g.status !== '反')
+                ? `<button class="btn" onclick="genReward('${g.name}')">赏(内帑500)</button>` : '';
+            const dismissBtn = (g.status === '外任')
+                ? `<button class="btn" onclick="genDismiss('${g.name}')">罢免</button>` : '';
+            return `<div class="gen-row ${cls}"><span class="gen-name">${g.name}${g.zi ? '<small>字' + g.zi + '</small>' : ''}</span>
+                <span class="gen-meta">将略 <b>${g.ability}</b> · 忠心 <b>${Math.round(g.loyalty)}</b> · 年 ${Math.floor(g.age)} · ${genStatusName(g)}${g.base ? '（' + g.base + '）' : ''}</span>
+                <span class="gen-ops">${marshalBtn}${rewardBtn}${dismissBtn}</span></div>`;
+        }).join('');
+
+        let rebelPart = '';
+        if (st.rebel && st.rebel.name) {
+            rebelPart = `<div class="gen-rebel-alert">⚠ 「${st.rebel.name}」已反，宜速征讨：
+                <button class="btn" onclick="genPutDown('诛')">出师讨逆(军-12 饷-800)</button>
+                <button class="btn" onclick="genPutDown('赦')">招抚赦免</button></div>`;
+        }
+
+        return `<div class="report-card"><div class="report-title">🌟 将星录</div>
+            <div class="report-text">各镇名将，身系边陲安危。用人不疑则忠，猜忌寡恩则变。</div>
+            ${rows}
+            ${rebelPart}
+            <div class="report-text"><i>列传引文逐条出自《明史》；表字、年齿、镇所为演绎设定。</i></div>
+        </div>`;
+    } catch (e) { return ''; }
+}
+
+// 样式（CSS 只追加，经运行时注入）
+(function () {
+    try {
+        if (typeof document === 'undefined') return;
+        if (document.getElementById('gen-style')) return;
+        const st = document.createElement('style');
+        st.id = 'gen-style';
+        st.textContent = `
+.gen-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 2px;border-bottom:1px solid rgba(120,96,56,.18);font-size:13px}
+.gen-row:last-child{border-bottom:none}
+.gen-name{font-weight:600;color:#4a2f10;min-width:120px}
+.gen-name small{color:#8a6a3c;margin-left:4px;font-weight:400}
+.gen-meta{color:#6b4f22;flex:1}
+.gen-ops{display:flex;gap:4px}
+.gen-out .gen-name{color:#1a5a2a}
+.gen-sick{opacity:.7}
+.gen-dead{opacity:.45;text-decoration:line-through}
+.gen-rebel .gen-name,.gen-rebel .gen-meta{color:#a0261a;font-weight:700}
+.gen-rebel-alert{background:rgba(160,38,26,.1);border:1px solid #a0261a;color:#8c1f14;padding:8px;border-radius:6px;margin-top:8px;font-size:13px}
+.gen-rebel-alert .btn{margin-left:6px}`;
+        document.head.appendChild(st);
+    } catch (e) { }
+})();
+
+// 挂帅兼容：让旧硬编码按钮（李成梁等）也走将星录逻辑
+try {
+    const _milMarshal = (typeof milMarshal === 'function') ? milMarshal : null;
+    milMarshal = function (name) {
+        const g = genFind(name);
+        if (g) { genMakeMarshal(name); return; }
+        if (_milMarshal) { _milMarshal(name); }
+    };
+} catch (e) { }
+
+console.log('✓ 批P(v7.0)·将星录加载完成');
+</script>
+<!-- 批Q(v7.0)：地图触动（城市/邻国/关隘点击 + 悬停提示） -->
+<script>
+// ============================================================
+// 《大明国策》批Q(v7.0) · 地图触动（map_interact.js）
+// 给真舆图增加点击交互与悬停提示，让地图"触之有声"：
+//   1. 城市点击 → 城市信息卡（名称 / 所属府 / 民俗 / 边关标记）
+//   2. 邻国点击 → 邻国信息卡（国名 / 与明关系 / 史据框架）
+//   3. 长城关隘点击 → 关隘信息卡（关名 / 九边防务简述）
+//   4. 悬停 tooltip：城市、邻国、关隘悬停即显名
+// 实现方式：覆盖式接管（保留原矢量渲染，仅注入 onclick/悬停属性），
+//          不改动 map_v67/map_v69/geo_ming 原有几何与视觉。
+// 史据说明：邻国/关隘疆域坐标据 historical-basemaps（CC-BY-SA 4.0）
+//           1600 年矢量；关系与防务简述为演绎性，框架参考
+//           《明史·地理志》《明史·兵志》《明史·外国传》。
+// ============================================================
+
+// ====== 邻国关系简述（史据框架 + 演绎性标注）======
+const V7_NATION_NOTES = {
+    '朝鲜': { rel: '藩属', note: '李氏朝鲜，明朝册封之朝贡藩国。万历壬辰（1592）丰臣秀吉侵朝，明廷发兵相援，是为「万历朝鲜之役」（万历三大征之一），终复其社稷。' },
+    '安南': { rel: '羁縻', note: '交趾故地。永乐时尝设交趾承宣布政使司，宣德间罢之，黎氏、莫氏相继。嘉靖间以莫氏为安南都统使司，羁縻于版图之外。' },
+    '乌斯藏': { rel: '羁縻', note: '今西藏之地。明置乌斯藏都司、朵甘都司，册封阐化王、大宝法王等，以僧俗法王羁縻，不与内地同轨。' },
+    '日本': { rel: '外患', note: '战国之世，倭寇屡犯东南海疆。丰臣秀吉统一后两度侵朝（1592、1597），为万历三大征之一，终未得志。' },
+    '缅甸诸邦': { rel: '边患', note: '东吁王朝崛起，万历年间屡侵滇西、孟养、木邦诸土司，朝廷兴「缅甸之役」（万历三大征之一），边警不绝。' },
+    '老挝': { rel: '土司', note: '澜沧之地。明初置老挝军民宣慰使司，为滇南羁縻土司。' },
+    '掸邦': { rel: '土司', note: '滇西南掸人诸部，附于麓川、木邦诸宣慰司，边徼羁縻之地。' },
+    '兰纳': { rel: '土司', note: '八百媳妇故地。明初置八百大甸军民宣慰使司，羁縻于滇西。' }
+};
+
+// ====== 长城关隘防务简述（九边体系框架）======
+const V7_WALL_NOTES = {
+    '山海关': '山海之间，锁钥辽蓟，京师东面屏障，北虏入犯首冲。',
+    '古北口': '燕山古隘，密云边墙要冲，虏骑常自此窥犯。',
+    '居庸关': '太行八陉之一，京师西北雄关，城高谷深，易守难攻。',
+    '宣府': '「京师肩背」，宣府镇城，九边冲要，马市互易之地。',
+    '大同': '代北重镇，大同镇城，北虏南犯必经，九边之脊。',
+    '偏关': '偏头关，与雁门、宁武合称「外三关」，山西镇西面门户。',
+    '榆林': '延绥镇城，边墙蜿蜒，精骑戍守，河套之南屏。',
+    '宁夏': '贺兰山下，宁夏镇城，控扼河套西陲。',
+    '固原': '三边总制驻节之地，内拱关陇，遥制四镇。',
+    '嘉峪关': '河西尽头，西域孔道，甘肃镇西陲雄关，塞外极边。'
+};
+
+// ====== 常量（浮层与提示符 id）======
+const V7_OVERLAY_ID = 'v7-mapinfo-overlay';
+const V7_TIP_ID = 'v7-map-tip';
+const V7_STYLE_ID = 'v7-mapinteract-style';
+
+// ====== 工具函数 ======
+function v7MapStop(e) { try { if (e && e.stopPropagation) e.stopPropagation(); } catch (_) {} }
+function v7Esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function v7Js(s) { return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+function v7RegionName(key) {
+    try {
+        if (typeof MAP_REGIONS !== 'undefined') {
+            const r = MAP_REGIONS.find(x => x && x.key === key);
+            if (r && r.name) return r.name;
+        }
+        return key || '';
+    } catch (e) { return key || ''; }
+}
+
+// ====== 悬停 tooltip ======
+function v7Tip(html) {
+    try {
+        let el = document.getElementById(V7_TIP_ID);
+        if (!el) {
+            el = document.createElement('div');
+            el.id = V7_TIP_ID;
+            document.body.appendChild(el);
+        }
+        el.innerHTML = html;
+        el.style.display = 'block';
+    } catch (e) {}
+}
+function v7TipMove(e) {
+    try {
+        const el = document.getElementById(V7_TIP_ID);
+        if (el && e) {
+            el.style.left = (e.clientX + 14) + 'px';
+            el.style.top = (e.clientY + 16) + 'px';
+        }
+    } catch (_) {}
+}
+function v7TipHide() {
+    try {
+        const el = document.getElementById(V7_TIP_ID);
+        if (el) el.style.display = 'none';
+    } catch (e) {}
+}
+
+// ====== 信息卡浮层 ======
+function v7OpenCard(title, tag, bodyHtml) {
+    try {
+        v7EnsureStyle();
+        let ov = document.getElementById(V7_OVERLAY_ID);
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = V7_OVERLAY_ID;
+            document.body.appendChild(ov);
+        }
+        ov.innerHTML = `<div class="v7-mc" onclick="event.stopPropagation();">` +
+            `<div class="v7-mc-head"><span class="v7-mc-title">${v7Esc(title)}</span><span class="v7-mc-tag">${v7Esc(tag)}</span></div>` +
+            `<div class="v7-mc-body">${bodyHtml}</div>` +
+            `<div class="v7-mc-foot"><span class="v7-mc-note">疆域据 historical-basemaps 1600 年矢量；沿革简述为演绎性，参考《明史》。</span><button class="v7-mc-close" onclick="v7CloseCard()">关闭</button></div>` +
+            `</div>`;
+        ov.style.display = 'flex';
+        try { DamingSFX.play('click'); } catch (e) {}
+    } catch (e) {}
+}
+function v7CloseCard() {
+    try { const ov = document.getElementById(V7_OVERLAY_ID); if (ov) ov.style.display = 'none'; } catch (e) {}
+}
+
+// ====== 城市信息卡 ======
+function v7CityCard(name) {
+    try {
+        const c = (typeof MAP_V67_CITIES !== 'undefined') ? MAP_V67_CITIES.find(x => x && x.name === name) : null;
+        if (!c) return;
+        const regionName = v7RegionName(c.region);
+        const isWall = (typeof V7_WALL_NOTES !== 'undefined') && Object.prototype.hasOwnProperty.call(V7_WALL_NOTES, name);
+        const wallLine = isWall ? `<div class="v7-mc-wall">&#x2694; 边关重镇，九边防务所系。</div>` : '';
+        const body =
+            `<div class="v7-mc-row"><span class="v7-mc-label">所属</span><span class="v7-mc-val">${v7Esc(regionName)}</span>` +
+            `<span class="v7-mc-link" onclick="v7GotoRegion('${v7Js(c.region)}')">查看此府 &raquo;</span></div>` +
+            `<div class="v7-mc-row"><span class="v7-mc-label">民俗</span><span class="v7-mc-val">${v7Esc(c.pop)}</span></div>` +
+            wallLine;
+        v7OpenCard(c.name, '城池', body);
+    } catch (e) {}
+}
+function v7GotoRegion(key) {
+    try {
+        v7CloseCard();
+        if (typeof openMapCellModal === 'function') openMapCellModal(key);
+    } catch (e) {}
+}
+
+// ====== 邻国信息卡 ======
+function v7NationCard(cn) {
+    try {
+        const rec = (typeof V7_NATION_NOTES !== 'undefined') ? V7_NATION_NOTES[cn] : null;
+        if (!rec) return;
+        const body =
+            `<div class="v7-mc-row"><span class="v7-mc-label">关系</span><span class="v7-mc-val">${v7Esc(rec.rel)}</span></div>` +
+            `<div class="v7-mc-text">${v7Esc(rec.note)}</div>`;
+        v7OpenCard(cn, '域外', body);
+    } catch (e) {}
+}
+
+// ====== 关隘信息卡 ======
+function v7WallCard(name) {
+    try {
+        const note = (typeof V7_WALL_NOTES !== 'undefined') ? V7_WALL_NOTES[name] : '';
+        if (!note) return;
+        const body = `<div class="v7-mc-text">${v7Esc(note)}</div>`;
+        v7OpenCard(name, '九边关隘', body);
+    } catch (e) {}
+}
+
+// ====== 悬停提示内容 ======
+function v7CityTip(name) {
+    try {
+        const c = (typeof MAP_V67_CITIES !== 'undefined') ? MAP_V67_CITIES.find(x => x && x.name === name) : null;
+        const regionName = c ? v7RegionName(c.region) : '';
+        v7Tip(`<b>${v7Esc(name)}</b>${regionName ? ' · ' + v7Esc(regionName) : ''}${c && c.pop ? '<br>' + v7Esc(c.pop) : ''}`);
+    } catch (e) {}
+}
+function v7NationTip(cn) {
+    try {
+        const rec = (typeof V7_NATION_NOTES !== 'undefined') ? V7_NATION_NOTES[cn] : null;
+        v7Tip(`<b>${v7Esc(cn)}</b>${rec ? ' · ' + v7Esc(rec.rel) : ''}`);
+    } catch (e) {}
+}
+function v7WallTip(name) {
+    try { v7Tip(`<b>${v7Esc(name)}</b> · 九边关隘`); } catch (e) {}
+}
+
+// ====== 覆盖：城市节点注入点击 + 悬停（保留原渲染）======
+(function () {
+    try {
+        if (typeof renderMapV67Cities === 'function') {
+            const _orig = renderMapV67Cities;
+            renderMapV67Cities = function () {
+                try {
+                    const html = _orig();
+                    if (!html) return html;
+                    return html.replace(/<g class="map-v67-city" data-name="([^"]*)"/g, function (m, name) {
+                        return `<g class="map-v67-city" data-name="${name}" style="cursor:pointer"` +
+                            ` onclick="v7MapStop(event);v7CityCard('${v7Js(name)}')"` +
+                            ` onmousemove="v7TipMove(event)" onmouseenter="v7CityTip('${v7Js(name)}')" onmouseleave="v7TipHide()"`;
+                    });
+                } catch (e) { return _orig(); }
+            };
+        }
+    } catch (e) {}
+})();
+
+// ====== 覆盖：邻国块注入点击（保留原视觉，重写等价渲染以挂 group 语义）======
+(function () {
+    try {
+        if (typeof renderMapV69Neighbors === 'function') {
+            const _orig = renderMapV69Neighbors;
+            renderMapV69Neighbors = function () {
+                try {
+                    if (typeof MING_NEIGHBORS_REAL === 'undefined') return _orig();
+                    let html = '';
+                    MING_NEIGHBORS_REAL.forEach(n => {
+                        n.paths.forEach(d => {
+                            html += `<path d="${d}" fill="${n.color}" opacity="0.5" stroke="#0A1118" stroke-width="1"` +
+                                ` style="cursor:pointer"` +
+                                ` onclick="v7MapStop(event);v7NationCard('${v7Js(n.cn)}')"` +
+                                ` onmousemove="v7TipMove(event)" onmouseenter="v7NationTip('${v7Js(n.cn)}')" onmouseleave="v7TipHide()"><title>${v7Esc(n.cn)}</title></path>`;
+                        });
+                    });
+                    return html;
+                } catch (e) { return _orig(); }
+            };
+        }
+    } catch (e) {}
+})();
+
+// ====== 覆盖：邻国名称标注注入点击 ======
+(function () {
+    try {
+        if (typeof renderMapV69NeighborLabels === 'function') {
+            const _orig = renderMapV69NeighborLabels;
+            renderMapV69NeighborLabels = function () {
+                try {
+                    if (typeof MING_NEIGHBORS_REAL === 'undefined') return _orig();
+                    return MING_NEIGHBORS_REAL.map(n => {
+                        const c = (typeof v69Centroid === 'function') ? v69Centroid(n.paths) : { x: 0, y: 0 };
+                        return `<text x="${c.x}" y="${c.y}" text-anchor="middle" fill="#CBBFA8" font-size="13" font-weight="bold" font-family="serif" opacity="0.85" style="text-shadow:1px 1px 3px rgba(0,0,0,0.9);cursor:pointer"` +
+                            ` onclick="v7MapStop(event);v7NationCard('${v7Js(n.cn)}')"` +
+                            ` onmousemove="v7TipMove(event)" onmouseenter="v7NationTip('${v7Js(n.cn)}')" onmouseleave="v7TipHide()">${v7Esc(n.cn)}</text>`;
+                    }).join('');
+                } catch (e) { return _orig(); }
+            };
+        }
+    } catch (e) {}
+})();
+
+// ====== 覆盖：长城追加可点关隘节点（保留原城墙折线与题字）======
+(function () {
+    try {
+        if (typeof renderMapV69Greatwall === 'function') {
+            const _orig = renderMapV69Greatwall;
+            renderMapV69Greatwall = function () {
+                let html = _orig();
+                try {
+                    if (typeof MING_GREATWALL_REAL !== 'undefined' && MING_GREATWALL_REAL.nodes) {
+                        MING_GREATWALL_REAL.nodes.forEach(n => {
+                            html += `<circle cx="${n.x}" cy="${n.y}" r="9" fill="rgba(255,215,0,0)" stroke="rgba(255,215,0,0.45)" stroke-width="1.5"` +
+                                ` style="cursor:pointer"` +
+                                ` onclick="v7MapStop(event);v7WallCard('${v7Js(n.name)}')"` +
+                                ` onmousemove="v7TipMove(event)" onmouseenter="v7WallTip('${v7Js(n.name)}')" onmouseleave="v7TipHide()"><title>${v7Esc(n.name)}</title></circle>`;
+                        });
+                    }
+                } catch (e) {}
+                return html;
+            };
+        }
+    } catch (e) {}
+})();
+
+// ====== 样式注入 ======
+function v7EnsureStyle() {
+    try {
+        if (document.getElementById(V7_STYLE_ID)) return;
+        const st = document.createElement('style');
+        st.id = V7_STYLE_ID;
+        st.textContent = `
+#${V7_OVERLAY_ID}{position:fixed;inset:0;background:rgba(8,12,18,0.62);display:none;align-items:center;justify-content:center;z-index:99990;}
+.v7-mc{width:min(440px,90vw);max-height:76vh;overflow:auto;background:linear-gradient(180deg,#1c1610,#12100c);border:1px solid #C9A227;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,0.7);padding:18px 20px;color:#E8DCC0;font-family:serif;}
+.v7-mc-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid #4a3f2a;padding-bottom:10px;margin-bottom:12px;}
+.v7-mc-title{font-size:24px;font-weight:bold;color:#FFD700;letter-spacing:2px;}
+.v7-mc-tag{font-size:13px;color:#CBBFA8;border:1px solid #6a5a38;border-radius:12px;padding:1px 10px;}
+.v7-mc-body{font-size:15px;line-height:1.7;}
+.v7-mc-row{display:flex;align-items:center;gap:8px;margin:6px 0;}
+.v7-mc-label{color:#a8946b;font-size:13px;min-width:3em;}
+.v7-mc-val{color:#efe4c4;}
+.v7-mc-link{margin-left:auto;color:#8fc7ff;font-size:13px;cursor:pointer;text-decoration:underline;}
+.v7-mc-wall{color:#e0a855;font-size:14px;margin-top:8px;}
+.v7-mc-text{color:#d8cbb0;margin:8px 0 4px;text-align:justify;}
+.v7-mc-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;border-top:1px solid #4a3f2a;padding-top:10px;}
+.v7-mc-note{font-size:11px;color:#7d7466;flex:1;}
+.v7-mc-close{cursor:pointer;background:#3a2f18;color:#FFD700;border:1px solid #C9A227;border-radius:6px;padding:4px 14px;font-family:serif;}
+.v7-mc-close:hover{background:#54421f;}
+#${V7_TIP_ID}{position:fixed;z-index:99999;pointer-events:none;background:rgba(10,14,20,0.94);border:1px solid #C9A227;border-radius:6px;padding:7px 11px;color:#FFE9B0;font-size:13px;font-family:serif;box-shadow:0 4px 16px rgba(0,0,0,0.6);display:none;max-width:260px;line-height:1.5;}
+`;
+        document.head.appendChild(st);
+    } catch (e) {}
+}
+(function () { try { v7EnsureStyle(); } catch (e) {} })();
+
+console.log('✓ 批Q·地图触动（城市/邻国/关隘点击 + 悬停提示）加载完成');
 </script>
 <!-- 批D：界面/立绘升级（收官） -->
 <script>
