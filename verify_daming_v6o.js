@@ -66,7 +66,10 @@ assert('O1-06', 'MING_RIVERS_REAL 4 条河', () => {
     const v = R('MING_RIVERS_REAL'); return Array.isArray(v) && v.length === 4;
 });
 assert('O1-07', 'renderMapV69Tab 是函数', () => typeof R('renderMapV69Tab') === 'function');
-assert('O1-08', 'renderMapV68Tab 已接管为真舆图', () => R('renderMapV68Tab === renderMapV69Tab'));
+assert('O1-08', 'renderMapV68Tab 已接管为真舆图（叠加图层后基底仍真舆图）', () => {
+    const h = R('renderMapV68Tab()');
+    return !!h && h.indexOf('万里长城') >= 0 && h.indexOf('朝鲜') >= 0 && typeof R('renderMapV69Tab') === 'function';
+});
 
 // ====== O2: 疆域数据 ======
 assert('O2-01', '大明疆域 3 块 polygon', () => R('MING_TERRITORY_REAL.length') === 3);

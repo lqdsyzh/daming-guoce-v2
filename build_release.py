@@ -13,7 +13,7 @@ import datetime
 
 WORK = pathlib.Path('/Coze/Drive/扣子/daming-guoce')
 OUT_HTML = WORK / 'daming-guoce-standalone.html'
-OUT_ZIP = WORK / 'daming-guoce-v70.zip'
+OUT_ZIP = WORK / 'daming-guoce-v71.zip'
 
 # ---------- 1. 生成 standalone ----------
 html = (WORK / 'index.html').read_text(encoding='utf-8')
@@ -41,7 +41,8 @@ print(f'✓ standalone 生成：{OUT_HTML.name}（{OUT_HTML.stat().st_size:,} �
 # ---------- 2. 打包完整源码 zip（保留目录结构） ----------
 EXCLUDE_DIRS = {'.git', '.deploy', 'node_modules', '__pycache__', '.skills', '.tmp', 'screenshots'}
 EXCLUDE_FILES = {
-    'daming-guoce-v68.zip',       # 自身
+    'daming-guoce-v70.zip',       # 旧包
+    'daming-guoce-v68.zip',       # 旧包
     'daming-guoce-v67.zip',       # 旧包
 }
 
