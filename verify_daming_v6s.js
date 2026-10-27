@@ -135,7 +135,41 @@ assert('S4-05', '态势阈值动态（royal≥60 显藩王坐大 / <60 不显）
     return !!h1 && h1.indexOf('藩王坐大') >= 0 && (!h2 || h2.indexOf('藩王坐大') < 0);
 });
 
-const n = (typeof process.env.THRESHOLD !== 'undefined') ? Number(process.env.THRESHOLD) : 16;
+// ====== S5: 斗争张力（批T）======
+assert('S5-01', 'v7sTension 势均力敌值高 / 悬殊归零', () => {
+    R('GameState.factions = {civil:60, eunuch:60, military:30, consort:30, royal:30}');
+    const t1 = R("v7sTension('civil','eunuch')");
+    R('GameState.factions = {civil:60, eunuch:20, military:30, consort:30, royal:30}');
+    const t2 = R("v7sTension('civil','eunuch')");
+    R('GameState.factions = {civil:20, eunuch:20, military:30, consort:30, royal:30}');
+    const t3 = R("v7sTension('civil','eunuch')");
+    return t1 === 60 && t2 === 0 && t3 === 20;
+});
+assert('S5-02', 'v7sTensionCourt 强对抗显角力漩涡 / 弱对抗不显', () => {
+    R('GameState.factions = {civil:70, eunuch:70, military:30, consort:20, royal:30}');
+    const h1 = R('v7sTensionCourt()');
+    R('GameState.factions = {civil:30, eunuch:70, military:30, consort:20, royal:30}');
+    const h2 = R('v7sTensionCourt()');
+    return !!h1 && h1.indexOf('v7s-tension-court') >= 0 && h1.indexOf('党争') >= 0 && h2 === '';
+});
+assert('S5-03', 'v7sRoyalCentrifugal 宗室坐大显离心箭头 / 不足不显', () => {
+    R('GameState.factions = {civil:50, eunuch:50, military:50, consort:50, royal:60}');
+    const h1 = R('v7sRoyalCentrifugal()');
+    R('GameState.factions = {civil:50, eunuch:50, military:50, consort:50, royal:40}');
+    const h2 = R('v7sRoyalCentrifugal()');
+    return !!h1 && h1.indexOf('v7s-royal-tension') >= 0 && h1.indexOf('<line') >= 0 && h2 === '';
+});
+assert('S5-04', 'v7sRenderTension 合成函数存在且为空态安全', () => {
+    R('GameState.factions = {civil:30, eunuch:30, military:30, consort:30, royal:30}');
+    return typeof R('v7sRenderTension') === 'function' && R('v7sRenderTension()') === '';
+});
+assert('S5-05', 'renderMapV68Tab 已接张力层（强对抗含漩涡+离心）', () => {
+    R('GameState.factions = {civil:70, eunuch:70, military:30, consort:20, royal:60}');
+    const h = R('renderMapV68Tab()');
+    return !!h && h.indexOf('v7s-tension-court') >= 0 && h.indexOf('v7s-royal-tension') >= 0;
+});
+
+const n = (typeof process.env.THRESHOLD !== 'undefined') ? Number(process.env.THRESHOLD) : 21;
 const PASSING = pass >= n;
 console.log(`\n结果：${pass} 通过 ${fail} 失败（门槛 ≥${n}）`);
 if (fails.length) console.log('失败项：\n' + fails.join('\n'));

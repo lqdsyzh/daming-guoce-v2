@@ -13,7 +13,7 @@ import datetime
 
 WORK = pathlib.Path('/Coze/Drive/扣子/daming-guoce')
 OUT_HTML = WORK / 'daming-guoce-standalone.html'
-OUT_ZIP = WORK / 'daming-guoce-v72.zip'
+OUT_ZIP = WORK / 'daming-guoce-v73.zip'
 
 # ---------- 1. 生成 standalone ----------
 html = (WORK / 'index.html').read_text(encoding='utf-8')
@@ -44,6 +44,7 @@ EXCLUDE_FILES = {
     'daming-guoce-v70.zip',       # 旧包
     'daming-guoce-v68.zip',       # 旧包
     'daming-guoce-v67.zip',       # 旧包
+    'daming-guoce-v72.zip',       # 旧包
 }
 
 # 修复 zipfile 1980 时间戳问题

@@ -22719,6 +22719,73 @@ function v7sRenderStruggles() {
     } catch (e) { return ''; }
 }
 
+// ====== 斗争张力（势均力敌时的角力可视化）======
+function v7sTension(a, b) {
+    try {
+        const f = GameState.factions || {};
+        const fa = (typeof f[a] === 'number') ? f[a] : 0;
+        const fb = (typeof f[b] === 'number') ? f[b] : 0;
+        const base = Math.min(fa, fb);
+        const bal = Math.max(0, 20 - Math.abs(fa - fb));
+        return Math.round(base * bal / 20);
+    } catch (e) { return 0; }
+}
+
+// 中枢角力漩涡：京畿朝堂最烈的对抗（党争/文武/宫斗），势均力敌才显现
+function v7sTensionCourt() {
+    try {
+        const pairs = [
+            { a: 'civil', b: 'eunuch', ca: V7S_FACTION_COLOR.civil, cb: V7S_FACTION_COLOR.eunuch, label: '党争' },
+            { a: 'civil', b: 'military', ca: V7S_FACTION_COLOR.civil, cb: V7S_FACTION_COLOR.military, label: '文武' },
+            { a: 'eunuch', b: 'consort', ca: V7S_FACTION_COLOR.eunuch, cb: V7S_FACTION_COLOR.consort, label: '宫斗' }
+        ];
+        let best = null;
+        pairs.forEach(function (p) { p.t = v7sTension(p.a, p.b); if (!best || p.t > best.t) best = p; });
+        if (!best || best.t < 42) return '';
+        const cx = 760, cy = 230;
+        const r = 8 + (best.t - 42) * 0.22;
+        const op = Math.min(0.85, 0.5 + (best.t - 42) * 0.015);
+        return '<g class="v7s-tension-court" style="pointer-events:none">' +
+            '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#D9B04A" stroke-width="1" stroke-dasharray="2 3" opacity="0.45"/>' +
+            '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.66) + '" fill="none" stroke="#D9B04A" stroke-width="0.8" stroke-dasharray="2 3" opacity="0.3"/>' +
+            '<path d="M' + (cx - 8) + ',' + (cy - 6) + ' L' + (cx + 2) + ',' + cy + ' L' + (cx - 8) + ',' + (cy + 6) + ' Z" fill="' + best.ca + '" opacity="' + op + '"/>' +
+            '<path d="M' + (cx + 8) + ',' + (cy - 6) + ' L' + (cx - 2) + ',' + cy + ' L' + (cx + 8) + ',' + (cy + 6) + ' Z" fill="' + best.cb + '" opacity="' + op + '"/>' +
+            '<text x="' + cx + '" y="' + (cy + 2.5) + '" text-anchor="middle" fill="#FFE9A8" font-size="6.5" font-weight="bold" font-family="serif">' + best.label + '</text>' +
+            '</g>';
+    } catch (e) { return ''; }
+}
+
+// 藩王离心：宗室坐大，藩王府向京师呈离心威胁（淡红虚线）
+function v7sRoyalCentrifugal() {
+    try {
+        const f = GameState.factions || {};
+        const roy = (typeof f.royal === 'number') ? f.royal : 0;
+        if (roy < 55) return '';
+        const op = Math.min(0.55, 0.2 + (roy - 55) * 0.015);
+        const cx = 760, cy = 230;
+        let html = '<g class="v7s-royal-tension" style="pointer-events:none">';
+        V7S_ROYALS.forEach(function (p) {
+            const x = p[2], y = p[3];
+            const dx = cx - x, dy = cy - y;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len < 1) return;
+            const ux = dx / len, uy = dy / len;
+            const ax = x + ux * 15, ay = y + uy * 15;
+            html += '<line x1="' + x + '" y1="' + y + '" x2="' + ax + '" y2="' + ay + '" stroke="#C94B40" stroke-width="1" stroke-dasharray="3 2" opacity="' + op + '"/>' +
+                '<circle cx="' + ax + '" cy="' + ay + '" r="1.8" fill="#C94B40" opacity="' + op + '"/>';
+        });
+        html += '</g>';
+        return html;
+    } catch (e) { return ''; }
+}
+
+// ====== 斗争张力层合成 ======
+function v7sRenderTension() {
+    try {
+        return v7sTensionCourt() + v7sRoyalCentrifugal();
+    } catch (e) { return ''; }
+}
+
 // ====== 势力图例（HTML panel）======
 function v7sLegendHtml() {
     try {
@@ -22755,7 +22822,11 @@ function v7sEnsureStyle() {
             '.v7s-leg-i em{font-style:normal;color:#E8D9B8;font-weight:bold}',
             '.v7s-leg-i small{font-style:normal;color:#8E8468;font-size:10px}',
             '.v7s-seats rect{filter:drop-shadow(0 0 2px rgba(0,0,0,0.6))}',
-            '.v7s-royals polygon{filter:drop-shadow(0 0 1px rgba(255,233,168,0.4))}'
+            '.v7s-royals polygon{filter:drop-shadow(0 0 1px rgba(255,233,168,0.4))}',
+            '.v7s-tension-court{animation:v7sCourtPulse 2.4s ease-in-out infinite}',
+            '@keyframes v7sCourtPulse{0%,100%{opacity:.5}50%{opacity:1}}',
+            '.v7s-royal-tension{animation:v7sRoyalPulse 3s ease-in-out infinite}',
+            '@keyframes v7sRoyalPulse{0%,100%{opacity:.55}50%{opacity:1}}'
         ].join('\n');
         document.head.appendChild(st);
     } catch (e) {}
@@ -22765,7 +22836,7 @@ function v7sEnsureStyle() {
 function v7sInject(html) {
     try {
         if (!html) return html;
-        const svgExtra = v7sRenderSeats() + v7sRenderStruggles();
+        const svgExtra = v7sRenderTension() + v7sRenderSeats() + v7sRenderStruggles();
         if (html.indexOf('</svg>') >= 0) {
             html = html.replace('</svg>', svgExtra + '</svg>');
         }
