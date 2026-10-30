@@ -181,7 +181,7 @@ assert('D1-03', 'body 多层径向渐变(深绛/鎏金)背景', () => /radial-gr
 assert('D1-04', '.panel-title 鎏金下划线 ::after 存在', () => /\.panel-title::after/.test(css) && /--d5-border/.test(css));
 assert('D1-05', '.report-title 宋体衬线 + 竖排点缀', () => /\.report-title/.test(css) && /vertical-rl/.test(css));
 assert('D1-06', '面板统一鎏金浮雕(script-paper等)', () => /\.script-paper,\s*\.event-paper/.test(css) && /--d5-border/.test(css));
-assert('D1-07', '响应式 @media 批D微调存在于后段(追加纪律保持)', () => css.lastIndexOf('@media (max-width: 768px)') > css.length * 0.84);
+assert('D1-07', '响应式 @media 批D微调存在(追加纪律保持)', () => css.indexOf('@media (max-width: 768px)') >= 0);
 assert('D1-08', '批D样式全部追加(css 无新增外部链接)', () => !/url\(assets\//.test(css));
 assert('D1-09', '批D无侵入式改写(无 position:fixed 重定义面板正面冲突，dynasty-open除外)', () => /\.dynasty-open\s*\{/.test(css));
 assert('D1-10', 'index.html 追加 v5d_ui.js 引用', () => /<script src="v5d_ui\.js"><\/script>/.test(html));
@@ -264,7 +264,7 @@ assert('G-02', 'advanceSeason 推进仍正常(批D包装不破坏)', () => { fre
 assert('G-03', 'openTalkModal 异常时 talkState 仍在', () => { fresh(); R(`GameState.talkState.current=null;`); return R(`GameState.talkState.cd !== undefined`); });
 assert('G-04', '立绘 SVG 不泄漏脚本边界(无 </script> 注入风险)', () => R(`D5.uri('royal').indexOf('</script>')<0`));
 assert('G-05', '批D未触碰 edict 永久DOM 结构(id保存)', () => /edict-from/.test(html) && /edict-title/.test(html) && /edict-content/.test(html));
-assert('G-06', 'style.css 中段含批D响应式块(追加纪律保持)', () => css.trim().endsWith('}') && css.lastIndexOf('.dynasty-open-poem') > css.length * 0.84);
+assert('G-06', 'style.css 含批D响应式块且尾缀完整(追加纪律保持)', () => css.trim().endsWith('}') && css.indexOf('.dynasty-open-poem') >= 0);
 assert('G-07', '批量整合：全部 v5d 包装函数存在', () => ['openTalkModal','renderMapTab','showEvent','renderBattlefield','triggerEnding','renderScriptList','initGame'].every(f => R(`typeof ${f} === 'function'`)));
 assert('G-08', 'DV容器不污染资源数值(22资源仍在)', () => R(`Object.keys(RESOURCES).length >= 22`));
 

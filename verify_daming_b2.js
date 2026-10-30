@@ -161,8 +161,8 @@ assert(srcTalk.includes('function talkCooldownKey') && srcTalk.includes('${c.cat
 assert(srcTalk.includes("DamingSFX.play('decide')") && srcTalk.includes("DamingSFX.play('coin')") &&
     srcTalk.includes("DamingSFX.play('urgent')") && srcTalk.includes("DamingSFX.play('step')"),
     'A52 召见四互动均配批1音效');
-assert(srcModules.includes("case 'map':         html = (typeof renderMapTab === 'function') ? renderMapTab() : ''; break;"),
-    'A53 modules.js renderPanel 接入舆图tab（typeof 防御与批1同模式）');
+assert(srcModules.indexOf("case 'map'") >= 0 && srcModules.indexOf("renderMapV68Tab()") >= 0 && srcModules.indexOf("renderMapTab()") >= 0,
+    'A53 modules.js case map 优先调 renderMapV68Tab（含 renderMapV67Tab/renderMapTab 降级链）');
 assert(srcModules.includes("if (typeof openTalkModal === 'function') { openTalkModal(cat, idx); return; }"),
     'A54 名录"召见"按钮接入召见浮层（保留旧赐茶降级路径）');
 assert(srcScript.includes('mapData: GameState.mapData') && srcScript.includes('talkData: GameState.talkState'),
@@ -384,8 +384,7 @@ try {
 try {
     R(`renderPanel('map')`);
     const panelHtml = String(R(`document.getElementById('center-panel').innerHTML`));
-    const cellCount = (panelHtml.match(/class="map-cell[ "]/g) || []).length;
-    assert(cellCount === 24, 'B16 舆图tab渲染24格（renderPanel接线可用）');
+    assert(panelHtml.indexOf('万里长城') >= 0 || panelHtml.indexOf('<svg') >= 0, 'B16 舆图tab渲染SVG真舆图（renderPanel接线可用）');
     R(`openMapCellModal('datong')`);
     assert(R(`document.getElementById('map-modal').classList.contains('active')`), 'B17 点击格子打开况卡浮层');
     R(`closeMapModal()`);

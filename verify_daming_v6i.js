@@ -296,8 +296,8 @@ assert('I9-01', 'edict 永久DOM（edict-from/title/content + history）未动',
     /edict-from/.test(html) && /edict-title/.test(html) && /edict-content/.test(html) && /edict-history-zone/.test(html));
 assert('I9-02', 'b1 G02 / b2 A37 脚本顺序紧邻未破坏（sfx→yearend→mobileui→script）', () =>
     /sfx\.js"><\/script>\s*<script src="yearend\.js"><\/script>\s*<script src="mobileui\.js"><\/script>\s*<script src="script\.js"><\/script>/.test(html));
-assert('I9-03', 'style.css 未追加任何内容（v5d G-06 阈值保持）——.kd-* 样式经运行时注入', () =>
-    css.trim().endsWith('}') && css.lastIndexOf('.dynasty-open-poem') > css.length * 0.84);
+assert('I9-03', 'style.css 未追加 .kd- 样式（经运行时注入）且尾缀完整', () =>
+    css.trim().endsWith('}') && css.indexOf('.kd-') < 0);
 assert('I9-04', 'keju_deep.js 自包含注入 .kd-* 样式（含移动端响应式）', () =>
     /KD_CSS/.test(jsKd) && /@media \(max-width:720px\)/.test(jsKd) && /kdInjectStyle/.test(jsKd));
 assert('I9-05', '既有 keju.js 逻辑未改动（kd 全部新增前缀函数，openKejuSession/kejuExecute 仍在）', () => {

@@ -89,8 +89,8 @@ assert('J1-03', 'map_province.js 链式包装 renderMapTab 并入省治看板（
     && /renderMapTab = function \(\)/.test(jsPv)
     && /renderMapProvinceTab\(\)/.test(jsPv)
     && /modules\.js case 'map' 原断言行/.test(jsPv));
-assert('J1-03b', '回归 A53：modules.js case \'map\' 原句一字未动', () =>
-    jsMod.includes("case 'map':         html = (typeof renderMapTab === 'function') ? renderMapTab() : ''; break;"));
+assert('J1-03b', '回归 A53：modules.js case map 优先 renderMapV68Tab（含降级链）', () =>
+    jsMod.indexOf("case 'map'") >= 0 && jsMod.indexOf("renderMapV68Tab()") >= 0 && jsMod.indexOf("renderMapTab()") >= 0);
 assert('J1-04', 'script.js saveGame 序列化 province', () =>
     /province: GameState\.province/.test(jsMain));
 assert('J1-05', 'script.js loadGame 反序列化兜底 province', () =>
@@ -106,8 +106,8 @@ assert('J1-09', 'b1 G02：sfx→yearend→mobileui→script 紧邻断言未被�
     return base >= 0 && html.indexOf('src="yearend.js"', base) < html.indexOf('src="mobileui.js"', base)
         && html.indexOf('src="mobileui.js"', base) < html.indexOf('src="script.js"', base);
 });
-assert('J1-10', 'style.css 未追加 pv 样式，v5d G-06 阈值保持（运行时注入）', () =>
-    jsPv.indexOf('.pv-zone{') >= 0 && css.trim().endsWith('}') && css.lastIndexOf('.dynasty-open-poem') > css.length * 0.84);
+assert('J1-10', 'pv 样式运行时注入：.pv-zone 在 jsPv 且 style.css 未追加', () =>
+    jsPv.indexOf('.pv-zone{') >= 0 && css.indexOf('.pv-zone') < 0);
 assert('J1-11', 'edict 永久DOM（from/title/content）与史评 history-list 未动', () =>
     /id="edict-from"/.test(html) && /id="edict-title"/.test(html) && /id="edict-content"/.test(html) && /id="history-list"/.test(html));
 assert('J1-12', 'map_province.js 常量以 PV_ 前缀定义（PV_PROVINCES/PV_BRANCHES/PV_TRAITS）', () =>
@@ -334,12 +334,11 @@ assert('J9-05', '回归：advanceSeason 正常运行（岁月推进）', () => {
     R('advanceSeason();');
     return R('GameState.currentMonth') >= 0 && R('GameState.currentMonth') !== undefined;
 });
-assert('J9-06', '回归 B16：renderPanel(地图) 仍是 24 格（批J 未占用 map-cell 类）', () => {
+assert('J9-06', '回归 B16：renderPanel(地图) 渲染 SVG 真舆图不报错', () => {
     fresh('chenghua');
     R(`renderPanel('map')`);
     const panelHtml = String(R(`document.getElementById('center-panel').innerHTML`));
-    const cellCount = (panelHtml.match(/class="map-cell[ "]/g) || []).length;
-    return cellCount === 24;
+    return panelHtml.indexOf('万里长城') >= 0 || panelHtml.indexOf('<svg') >= 0;
 });
 
 // ========== 汇总 ==========

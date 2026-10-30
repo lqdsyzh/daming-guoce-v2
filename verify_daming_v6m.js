@@ -182,7 +182,7 @@ assert('M9-02', 'map_v67.js 在 map.js 之后', () => {
 
 // ====== M10: modules.js case 'map' 优先 ======
 const mod = fs.readFileSync(path.join(WORK, 'modules.js'), 'utf-8');
-assert('M10-01', "modules.js case 'map' 优先调 renderMapV67Tab", () => /case 'map':\s*html = \(typeof renderMapV67Tab === 'function'\) \? renderMapV67Tab/.test(mod));
+assert('M10-01', "modules.js case 'map' 优先调 renderMapV68Tab", () => /case 'map':\s*html = \(typeof renderMapV68Tab === 'function'\) \? renderMapV68Tab/.test(mod));
 
 // ====== M11: style.css 末尾包含 .map-svg-* 样式 ======
 const css = fs.readFileSync(path.join(WORK, 'style.css'), 'utf-8');
@@ -198,11 +198,11 @@ assert('M12-01', '两次渲染完全一致', () => html1 === html2);
 // ====== M13: 长江/黄河 polyline 合理性 ======
 assert('M13-01', '长江路径含 Q 曲线', () => {
     const v = R('MAP_V67_RIVERS');
-    return v.changjiang && v.changjiang.indexOf('Q') >= 0;
+    return v.changjiang && v.changjiang.path && v.changjiang.path.indexOf('Q') >= 0;
 });
 assert('M13-02', '黄河路径含 Q 曲线', () => {
     const v = R('MAP_V67_RIVERS');
-    return v.huanghe && v.huanghe.indexOf('Q') >= 0;
+    return v.huanghe && v.huanghe.path && v.huanghe.path.indexOf('Q') >= 0;
 });
 
 // ====== M14: 长城路径含嘉峪关+山海关范围 ======
