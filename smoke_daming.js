@@ -221,8 +221,17 @@ step('5. 开局：initGame("chenghua") 正常', () => {
 });
 
 step('6. 连续推进 51 tick（≥17季，跨4个岁末大计面板）不报错', () => {
-    for (let i = 0; i < 51; i++) {
-        vm.runInContext('advanceSeason()', sandbox);
+    // 固定随机源：屏蔽「随机败亡结局」对推进确定性的干扰。
+    // checkLoseConditions 内 Math.random()<0.05/0.03 的亡国判定是游戏机制，但 smoke 只验证推进逻辑无运行时异常，
+    // 故固定为 0.5 使随机败亡永不命中，推进稳定跑满 51 tick。推进后恢复原随机源（try/finally）。
+    const origRandom = Math.random;
+    Math.random = function () { return 0.5; };
+    try {
+        for (let i = 0; i < 51; i++) {
+            vm.runInContext('advanceSeason()', sandbox);
+        }
+    } finally {
+        Math.random = origRandom;
     }
     const st = vm.runInContext(
         `JSON.stringify({ y: GameState.currentYear, s: GameState.currentSeason, d: GameState.decisionsCount })`,
